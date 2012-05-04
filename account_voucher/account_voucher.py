@@ -192,7 +192,7 @@ class account_voucher(osv.osv):
             debit += l['amount']
         for l in line_cr_ids:
             credit += l['amount']
-        return abs(amount - abs(credit - debit))
+        return abs(abs(amount) - abs(credit - debit))
 
     def onchange_line_ids(self, cr, uid, ids, line_dr_ids, line_cr_ids, amount, voucher_currency, context=None):
         context = context or {}
@@ -221,7 +221,7 @@ class account_voucher(osv.osv):
             for l in voucher.line_cr_ids:
                 credit += l.amount
             currency = voucher.currency_id or voucher.company_id.currency_id
-            res[voucher.id] =  currency_obj.round(cr, uid, currency, abs(voucher.amount - abs(credit - debit)))
+            res[voucher.id] =  currency_obj.round(cr, uid, currency, abs(abs(voucher.amount) - abs(credit - debit)))
         return res
 
     def _paid_amount_in_company_currency(self, cr, uid, ids, name, args, context=None):
