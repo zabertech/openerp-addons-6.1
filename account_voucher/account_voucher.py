@@ -192,7 +192,7 @@ class account_voucher(osv.osv):
             debit += l['amount']
         for l in line_cr_ids:
             credit += l['amount']
-        return abs(amount - abs(credit - debit))
+        return abs(abs(amount) - abs(credit - debit))
 
     def onchange_line_ids(self, cr, uid, ids, line_dr_ids, line_cr_ids, amount, voucher_currency, context=None):
         context = context or {}
@@ -221,7 +221,7 @@ class account_voucher(osv.osv):
             for l in voucher.line_cr_ids:
                 credit += l.amount
             currency = voucher.currency_id or voucher.company_id.currency_id
-            res[voucher.id] =  currency_obj.round(cr, uid, currency, abs(voucher.amount - abs(credit - debit)))
+            res[voucher.id] =  currency_obj.round(cr, uid, currency, abs(abs(voucher.amount) - abs(credit - debit)))
         return res
 
     def _paid_amount_in_company_currency(self, cr, uid, ids, name, args, context=None):
@@ -276,7 +276,7 @@ class account_voucher(osv.osv):
                         \n* The \'Pro-forma\' when voucher is in Pro-forma state,voucher does not have an voucher number. \
                         \n* The \'Posted\' state is used when user create voucher,a voucher number is generated and voucher entries are created in account \
                         \n* The \'Cancelled\' state is used when user cancel voucher.'),
-        'amount': fields.float('Total', digits_compute=dp.get_precision('Account'), required=True, readonly=True, states={'draft':[('readonly',False)]}),
+        'amount': fields.float('Total', digits_compute=dp.get_precision('Account'), required=True, readonly=True, states={'draft':[('readonly',False)]}, help="During refund payment, add negative amount."),
         'tax_amount':fields.float('Tax Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
         'reference': fields.char('Ref #', size=64, readonly=True, states={'draft':[('readonly',False)]}, help="Transaction reference number."),
         'number': fields.char('Number', size=32, readonly=True,),
@@ -676,6 +676,7 @@ class account_voucher(osv.osv):
                         amount = min(amount_unreconciled, abs(total_credit))
                         rs['amount'] = amount
                         total_credit -= amount
+            rs['amount'] = abs(rs['amount'])
 
             if rs['amount_unreconciled'] == rs['amount']:
                 rs['reconcile'] = True
@@ -1453,7 +1454,7 @@ class account_bank_statement_line(osv.osv):
     def _check_amount(self, cr, uid, ids, context=None):
         for obj in self.browse(cr, uid, ids, context=context):
             if obj.voucher_id:
-                diff = abs(obj.amount) - obj.voucher_id.amount
+                diff = abs(obj.amount) - abs(obj.voucher_id.amount)
                 if not self.pool.get('res.currency').is_zero(cr, uid, obj.statement_id.currency, diff):
                     return False
         return True
