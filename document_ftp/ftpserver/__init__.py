@@ -32,7 +32,7 @@ def start_server():
     PASSIVE_PORTS = None
     pps = config.get('ftp_server_passive_ports', '').split(':')
     if len(pps) == 2:
-        PASSIVE_PORTS = int(pps[0]), int(pps[1])
+        PASSIVE_PORTS = range(int(pps[0]), int(pps[1]) + 1)
 
     class ftp_server(threading.Thread):
         def log(self, level, message):
