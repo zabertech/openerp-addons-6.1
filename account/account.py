@@ -1560,8 +1560,10 @@ class account_move(osv.osv):
         for move in self.browse(cr, uid, ids, context):
             # Unlink old analytic lines on move_lines
             for obj_line in move.line_id:
-                for obj in obj_line.analytic_lines:
-                    obj_analytic_line.unlink(cr,uid,obj.id)
+                # Only unlink analytic lines if they were generated
+                if obj_line.analytic_account_id:
+                    for obj in obj_line.analytic_lines:
+                        obj_analytic_line.unlink(cr,uid,obj.id)
 
             journal = move.journal_id
             amount = 0
