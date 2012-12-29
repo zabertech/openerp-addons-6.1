@@ -62,6 +62,7 @@ class account_bank_statement(osv.osv):
     def _end_balance(self, cursor, user, ids, name, attr, context=None):
         res_currency_obj = self.pool.get('res.currency')
         res_users_obj = self.pool.get('res.users')
+
         res = {}
 
         company_currency_id = res_users_obj.browse(cursor, user, user,
@@ -69,21 +70,37 @@ class account_bank_statement(osv.osv):
 
         statements = self.browse(cursor, user, ids, context=context)
         for statement in statements:
+            # Change to use amount_currency here because overriding this
+            # code gets ugly. -- DK
             res[statement.id] = statement.balance_start
             currency_id = statement.currency.id
             for line in statement.move_line_ids:
+                line_amount = 0
+                from_currency_id = currency_id
                 if line.debit > 0:
                     if line.account_id.id == \
                             statement.journal_id.default_debit_account_id.id:
-                        res[statement.id] += res_currency_obj.compute(cursor,
-                                user, company_currency_id, currency_id,
-                                line.debit, context=context)
+                        if line.amount_currency:
+                            line_amount = line.amount_currency
+                            from_currency_id = line.currency_id.id
+                        else:
+                            line_amount = line.debit
+                            from_currency_id = company_currency_id
                 else:
                     if line.account_id.id == \
                             statement.journal_id.default_credit_account_id.id:
-                        res[statement.id] -= res_currency_obj.compute(cursor,
-                                user, company_currency_id, currency_id,
-                                line.credit, context=context)
+                        if line.amount_currency:
+                            line_amount = line.amount_currency
+                            from_currency_id = line.currency_id.id
+                        else:
+                            line_amount = -line.credit
+                            from_currency_id = company_currency_id
+                res[statement.id] += res_currency_obj.compute(cursor,
+                                                              user, 
+                                                              from_currency_id,
+                                                              currency_id,
+                                                              line_amount, 
+                                                              context=context)
 
             if statement.state in ('draft', 'open'):
                 for line in statement.line_ids:
