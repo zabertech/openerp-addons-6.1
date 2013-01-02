@@ -275,13 +275,15 @@ class hr_timesheet_sheet(osv.osv):
         return True
 
     def date_today(self, cr, uid, ids, context=None):
+        today = fields.date.context_today(self, cr, uid, context=context)
+        
         for sheet in self.browse(cr, uid, ids, context=context):
-            if datetime.today() <= datetime.strptime(sheet.date_from, '%Y-%m-%d'):
-                self.write(cr, uid, [sheet.id], {'date_current': sheet.date_from,}, context=context)
-            elif datetime.now() >= datetime.strptime(sheet.date_to, '%Y-%m-%d'):
-                self.write(cr, uid, [sheet.id], {'date_current': sheet.date_to,}, context=context)
+            if today <= sheet.date_from:
+                self.write(cr, uid, [sheet.id], {'date_current': sheet.date_from}, context=context)
+            elif today >= sheet.date_to:
+                self.write(cr, uid, [sheet.id], {'date_current': sheet.date_to}, context=context)
             else:
-                self.write(cr, uid, [sheet.id], {'date_current': time.strftime('%Y-%m-%d')}, context=context)
+                self.write(cr, uid, [sheet.id], {'date_current': today}, context=context)
         return True
 
     def date_previous(self, cr, uid, ids, context=None):
