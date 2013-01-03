@@ -476,7 +476,7 @@ class hr_timesheet_line(osv.osv):
             context = {}
         if 'date' in context:
             return context['date']
-        return time.strftime('%Y-%m-%d')
+        return fields.date.context_today(self, cr, uid, context=context)
 
     def _sheet(self, cursor, user, ids, name, args, context=None):
         sheet_obj = self.pool.get('hr_timesheet_sheet.sheet')
@@ -518,7 +518,7 @@ class hr_timesheet_line(osv.osv):
             store={
                     'hr_timesheet_sheet.sheet': (_get_hr_timesheet_sheet, ['employee_id', 'date_from', 'date_to'], 10),
                     'account.analytic.line': (_get_account_analytic_line, ['user_id', 'date'], 10),
-                    'hr.analytic.timesheet': (lambda self,cr,uid,ids,context=None: ids, ['line_id'], 10),
+                    'hr.analytic.timesheet': (lambda self,cr,uid,ids,context=None: ids, None, 10),
                   },
             ),
     }
