@@ -162,7 +162,7 @@ class hr_sign_in_out(osv.osv_memory):
             self.pool.get('hr.attendance').create(cr, uid, {'name': data['last_time'], 'action': 'sign_out',
                 'employee_id': emp_id}, context=context)
         try:
-            self.pool.get('hr.employee').attendance_action_change(cr, uid, [emp_id], 'sign_in')
+            self.pool.get('hr.employee').attendance_action_change(cr, uid, [emp_id], 'sign_in', context=context)
         except:
             raise osv.except_osv(_('UserError'), _('A sign-in must be right after a sign-out !'))
         return {'type': 'ir.actions.act_window_close'} # To do: Return Success message
@@ -174,7 +174,7 @@ class hr_sign_in_out(osv.osv_memory):
                 raise osv.except_osv(_('UserError'), _('The Sign-in date must be in the past'))
             self.pool.get('hr.attendance').create(cr, uid, {'name':data['last_time'], 'action':'sign_in',  'employee_id':emp_id}, context=context)
         try:
-            self.pool.get('hr.employee').attendance_action_change(cr, uid, [emp_id], 'sign_out')
+            self.pool.get('hr.employee').attendance_action_change(cr, uid, [emp_id], 'sign_out', context=context)
         except:
             raise osv.except_osv(_('UserError'), _('A sign-out must be right after a sign-in !'))
         return {'type': 'ir.actions.act_window_close'} # To do: Return Success message

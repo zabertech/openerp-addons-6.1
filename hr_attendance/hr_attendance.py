@@ -20,6 +20,7 @@
 ##############################################################################
 
 import time
+from datetime import datetime
 
 from osv import fields, osv
 from tools.translate import _
@@ -48,7 +49,12 @@ class hr_attendance(osv.osv):
     def _day_compute(self, cr, uid, ids, fieldnames, args, context=None):
         res = dict.fromkeys(ids, '')
         for obj in self.browse(cr, uid, ids, context=context):
-            res[obj.id] = time.strftime('%Y-%m-%d', time.strptime(obj.name, '%Y-%m-%d %H:%M:%S'))
+            timestamp = datetime.strptime(obj.name, '%Y-%m-%d %H:%M:%S')
+            res[obj.id] = fields.date.context_today(self, 
+                                                    cr, 
+                                                    uid, 
+                                                    context=context, 
+                                                    timestamp=timestamp)
         return res
 
     _columns = {
