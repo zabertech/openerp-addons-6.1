@@ -46,8 +46,8 @@ class one2many_mod2(fields.one2many):
                     dom.insert(0 ,'|')
                 dom.append('&')
                 dom.append('&')
-                dom.append(('name', '>=', res6[id]))
-                dom.append(('name', '<=', res6[id]))
+                dom.append(('day', '>=', res6[id]))
+                dom.append(('day', '<=', res6[id]))
                 dom.append(('sheet_id', '=', id))
 
         ids2 = obj.pool.get(self._obj).search(cr, user, dom, limit=self._limit)
@@ -316,7 +316,8 @@ class hr_timesheet_sheet(osv.osv):
 
     def check_sign(self, cr, uid, ids, typ, context=None):
         sheet = self.browse(cr, uid, ids, context=context)[0]
-        if not sheet.date_current == time.strftime('%Y-%m-%d'):
+        today = fields.date.context_today(self, cr, uid, context=context)
+        if not sheet.date_current == today:
             raise osv.except_osv(_('Error !'), _('You cannot sign in/sign out from an other date than today'))
         return True
 
@@ -575,8 +576,8 @@ class hr_attendance(osv.osv):
                                INNER JOIN resource_resource r
                                        ON (e.resource_id = r.id)
                             ON (a.employee_id = e.id)
-                        WHERE %(date_to)s >= date_trunc('day', a.name)
-                              AND %(date_from)s <= a.name
+                        WHERE %(date_to)s >= a.day
+                              AND %(date_from)s <= a.day
                               AND %(user_id)s = r.user_id
                          GROUP BY a.id""", {'date_from': ts.date_from,
                                             'date_to': ts.date_to,
@@ -588,9 +589,14 @@ class hr_attendance(osv.osv):
         sheet_obj = self.pool.get('hr_timesheet_sheet.sheet')
         res = {}.fromkeys(ids, False)
         for attendance in self.browse(cursor, user, ids, context=context):
-            date_to = datetime.strftime(datetime.strptime(attendance.name[0:10], '%Y-%m-%d'), '%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.strptime(attendance.name, '%Y-%m-%d %H:%M:%S')
+            day = fields.date.context_today(self, 
+                                            cursor, 
+                                            user, 
+                                            context=context, 
+                                            timestamp=timestamp)
             sheet_ids = sheet_obj.search(cursor, user,
-                [('date_to', '>=', date_to), ('date_from', '<=', attendance.name),
+                [('date_to', '>=', day), ('date_from', '<=', day),
                  ('employee_id', '=', attendance.employee_id.id)],
                 context=context)
             if sheet_ids:
