@@ -118,6 +118,10 @@ class hr_timesheet_sheet(osv.osv):
         """
         context = context or {}
         attendance_obj = self.pool.get('hr.attendance')
+        now = fields.datetime.context_timestamp(cr, 
+                                                uid,
+                                                datetime.now(), 
+                                                context=context)
         res = {}
         for sheet_id in ids:
             sheet = self.browse(cr, uid, sheet_id, context=context)
@@ -129,11 +133,15 @@ class hr_timesheet_sheet(osv.osv):
             total_attendance = {}
             for attendance in [att for att in attendances
                                if att.action in ('sign_in', 'sign_out')]:
-                day = attendance.name[:10]
+                day = attendance.day
                 if not total_attendance.get(day, False):
                     total_attendance[day] = timedelta(seconds=0)
 
-                attendance_in_time = datetime.strptime(attendance.name, '%Y-%m-%d %H:%M:%S')
+                attendance_in_time = fields.datetime.context_timestamp(
+                    cr,
+                    uid,
+                    datetime.strptime(attendance.name, '%Y-%m-%d %H:%M:%S'),
+                    context=context)
                 attendance_interval = timedelta(hours=attendance_in_time.hour,
                                                 minutes=attendance_in_time.minute,
                                                 seconds=attendance_in_time.second)
@@ -147,7 +155,6 @@ class hr_timesheet_sheet(osv.osv):
                 # for a past date, and the time to now for the current date
                 if total_attendance[day] < timedelta(0):
                     if day == date_current:
-                        now = datetime.now()
                         total_attendance[day] += timedelta(hours=now.hour,
                                                            minutes=now.minute,
                                                            seconds=now.second)
