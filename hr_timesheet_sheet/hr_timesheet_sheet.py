@@ -137,18 +137,7 @@ class hr_timesheet_sheet(osv.osv):
                 if not total_attendance.get(day, False):
                     total_attendance[day] = timedelta(seconds=0)
 
-                attendance_in_time = fields.datetime.context_timestamp(
-                    cr,
-                    uid,
-                    datetime.strptime(attendance.name, '%Y-%m-%d %H:%M:%S'),
-                    context=context)
-                attendance_interval = timedelta(hours=attendance_in_time.hour,
-                                                minutes=attendance_in_time.minute,
-                                                seconds=attendance_in_time.second)
-                if attendance.action == 'sign_in':
-                    total_attendance[day] -= attendance_interval
-                else:
-                    total_attendance[day] += attendance_interval
+                total_attendance[day] += timedelta(hours=attendance.daily_hours)
 
                 # if the delta is negative, it means that a sign out is missing
                 # in a such case, we want to have the time to the end of the day
@@ -610,7 +599,24 @@ class hr_attendance(osv.osv):
                 # [0] because only one sheet possible for an employee between 2 dates
                 res[attendance.id] = sheet_obj.name_get(cursor, user, sheet_ids, context=context)[0]
         return res
-
+    
+    def _daily_hours(self, cr, uid, ids, name, args, context=None):
+        res = {}.fromkeys(ids, False)
+        for attendance in self.browse(cr, uid, ids, context=context):
+            day = attendance.day
+            attendance_in_time = fields.datetime.context_timestamp(
+                cr,
+                uid,
+                datetime.strptime(attendance.name, '%Y-%m-%d %H:%M:%S'),
+                context=context)
+            hours = (attendance_in_time.hour + 
+                     attendance_in_time.minute / 60.0 +
+                     attendance_in_time.second / 3600.0)
+            if attendance.action == 'sign_in':
+                hours *= -1
+            res[attendance.id] = hours
+        return res
+    
     _columns = {
         'sheet_id': fields.function(_sheet, string='Sheet',
             type='many2one', relation='hr_timesheet_sheet.sheet',
@@ -618,7 +624,12 @@ class hr_attendance(osv.osv):
                       'hr_timesheet_sheet.sheet': (_get_hr_timesheet_sheet, ['employee_id', 'date_from', 'date_to'], 10),
                       'hr.attendance': (lambda self,cr,uid,ids,context=None: ids, ['employee_id', 'name', 'day'], 10),
                   },
-            )
+            ),
+        'daily_hours': fields.function(_daily_hours, 
+                                       type='float', 
+                                       string='Daily Hours',
+                                       digits=(16,2),
+                                       store=True)
     }
     _defaults = {
         'name': _get_default_date,
@@ -724,10 +735,10 @@ class hr_timesheet_sheet_sheet_day(osv.osv):
                         ) union (
                             select
                                 -min(a.id) as id,
-                                a.name::date as name,
+                                a.day::date as name,
                                 s.id as sheet_id,
                                 0.0 as total_timesheet,
-                                SUM(((EXTRACT(hour FROM a.name) * 60) + EXTRACT(minute FROM a.name)) * (CASE WHEN a.action = 'sign_in' THEN -1 ELSE 1 END)) as total_attendance
+                                SUM(a.daily_hours)*60 as total_attendance
                             from
                                 hr_attendance a
                                 LEFT JOIN (hr_timesheet_sheet_sheet s
@@ -736,10 +747,10 @@ class hr_timesheet_sheet_sheet_day(osv.osv):
                                         ON (e.resource_id = r.id)
                                     ON (s.user_id = r.user_id))
                                 ON (a.employee_id = e.id
-                                    AND s.date_to >= date_trunc('day',a.name)
-                                    AND s.date_from <= a.name)
+                                    AND s.date_to >= a.day::date
+                                    AND s.date_from <= a.day::date)
                             WHERE action in ('sign_in', 'sign_out')
-                            group by a.name::date, s.id
+                            group by a.day::date, s.id
                         )) AS foo
                         GROUP BY name, sheet_id
                 )) AS bar""")
