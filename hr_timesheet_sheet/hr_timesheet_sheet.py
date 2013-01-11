@@ -349,6 +349,7 @@ class hr_timesheet_sheet(osv.osv):
             'Timesheet lines', domain=[('date', '=', time.strftime('%Y-%m-%d'))],
             readonly=True, states={
                 'draft': [('readonly', False)],
+                'confirm': [('readonly', False)],
                 'new': [('readonly', False)]}
             ),
         'attendances_ids' : one2many_mod2('hr.attendance', 'sheet_id', 'Attendances'),
@@ -465,6 +466,25 @@ class hr_timesheet_sheet(osv.osv):
             user_id = employee.user_id.id
         return {'value': {'department_id': department_id, 'user_id': user_id}}
 
+    def _can_modify(self, cr, uid, sheet, context=None):
+        """ Examine a timesheet_sheet browse object to see if it is allowed to
+        be modified. True if the state is draft, or if it's confirmed, and the
+        current user is an HR manager.
+        """
+        if sheet.state in ('draft', 'new'):
+            return True
+        if sheet.state != 'confirm':
+            return False
+        access_obj = self.pool.get('ir.model.access')
+        raise_exception = False
+        is_manager = access_obj.check(cr, 
+                                      uid, 
+                                      'hr.timesheet.report', 
+                                      'create',
+                                      raise_exception, 
+                                      context)
+        return is_manager
+
 hr_timesheet_sheet()
 
 
@@ -529,8 +549,12 @@ class hr_timesheet_line(osv.osv):
     def _check_sheet_state(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
+        ts_obj = self.pool.get('hr_timesheet_sheet.sheet')
         for timesheet_line in self.browse(cr, uid, ids, context=context):
-            if timesheet_line.sheet_id and timesheet_line.sheet_id.state not in ('draft', 'new'):
+            if timesheet_line.sheet_id and not ts_obj._can_modify(
+                    cr, 
+                    uid, 
+                    timesheet_line.sheet_id):
                 return False
         return True
 
@@ -639,8 +663,9 @@ class hr_attendance(osv.osv):
         if context is None:
             context = {}
         if 'sheet_id' in context:
-            ts = self.pool.get('hr_timesheet_sheet.sheet').browse(cr, uid, context['sheet_id'], context=context)
-            if ts.state not in ('draft', 'new'):
+            ts_obj = self.pool.get('hr_timesheet_sheet.sheet')
+            ts = ts_obj.browse(cr, uid, context['sheet_id'], context=context)
+            if not ts._can_modify(cr, uid, ts):
                 raise osv.except_osv(_('Error !'), _('You cannot modify an entry in a confirmed timesheet!'))
         res = super(hr_attendance,self).create(cr, uid, vals, context=context)
         if 'sheet_id' in context:
@@ -670,8 +695,9 @@ class hr_attendance(osv.osv):
         return res
 
     def _check(self, cr, uid, ids):
+        ts_obj = self.pool.get('hr_timesheet_sheet.sheet')
         for att in self.browse(cr, uid, ids):
-            if att.sheet_id and att.sheet_id.state not in ('draft', 'new'):
+            if att.sheet_id and not ts_obj._can_modify(cr, uid, att.sheet_id):
                 raise osv.except_osv(_('Error !'), _('You cannot modify an entry in a confirmed timesheet !'))
         return True
 
