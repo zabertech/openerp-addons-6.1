@@ -1262,6 +1262,13 @@ class account_move(osv.osv):
         if ids:
             return [('id', 'in', tuple(ids))]
         return [('id', '=', '0')]
+    
+    def _get_line_move(self, cr, uid, ids, context=None):
+        move_ids = set()
+        line_obj = self.pool.get('account.move.line')
+        for line in line_obj.browse(cr, uid, ids, context):
+            move_ids.add(line.move_id.id)
+        return list(move_ids)
 
     _columns = {
         'name': fields.char('Number', size=64, required=True),
@@ -1272,7 +1279,8 @@ class account_move(osv.osv):
             help='All manually created new journal entries are usually in the state \'Unposted\', but you can set the option to skip that state on the related journal. In that case, they will be behave as journal entries automatically created by the system on document validation (invoices, bank statements...) and will be created in \'Posted\' state.'),
         'line_id': fields.one2many('account.move.line', 'move_id', 'Entries', states={'posted':[('readonly',True)]}),
         'to_check': fields.boolean('To Review', help='Check this box if you are unsure of that journal entry and if you want to note it as \'to be reviewed\' by an accounting expert.'),
-        'partner_id': fields.related('line_id', 'partner_id', type="many2one", relation="res.partner", string="Partner", store=True),
+        'partner_id': fields.related('line_id', 'partner_id', type="many2one", relation="res.partner", string="Partner", 
+                                     store={ 'account.move.line': (_get_line_move, ['partner_id'], 10) }),
         'amount': fields.function(_amount_compute, string='Amount', digits_compute=dp.get_precision('Account'), type='float', fnct_search=_search_amount),
         'date': fields.date('Date', required=True, states={'posted':[('readonly',True)]}, select=True),
         'narration':fields.text('Internal Note'),
