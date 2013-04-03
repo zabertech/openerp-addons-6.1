@@ -367,6 +367,7 @@
   <!-- Timesheet Button on Employee Form -->
   <act_window
            context="{'search_default_employee_id': [active_id], 'default_employee_id': active_id}"
+           groups="base.group_hr_manager"
            id="act_hr_employee_2_hr_timesheet" name="Timesheets" res_model="hr_timesheet_sheet.sheet" src_model="hr.employee"/>
 
     </data>
