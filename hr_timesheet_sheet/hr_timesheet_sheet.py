@@ -583,7 +583,11 @@ class hr_attendance(osv.osv):
         if context is None:
             context = {}
         if 'name' in context:
-            return context['name'] + time.strftime(' %H:%M:%S')
+            return fields.datetime.context_timestamp_from_business_date(
+                cr,
+                uid,
+                context['name'],
+                context).strftime('%Y-%m-%d %H:%M:%S')
         return time.strftime('%Y-%m-%d %H:%M:%S')
 
     def _get_hr_timesheet_sheet(self, cr, uid, ids, context=None):
@@ -665,7 +669,7 @@ class hr_attendance(osv.osv):
         if 'sheet_id' in context:
             ts_obj = self.pool.get('hr_timesheet_sheet.sheet')
             ts = ts_obj.browse(cr, uid, context['sheet_id'], context=context)
-            if not ts._can_modify(cr, uid, ts):
+            if not ts_obj._can_modify(cr, uid, ts):
                 raise osv.except_osv(_('Error !'), _('You cannot modify an entry in a confirmed timesheet!'))
         res = super(hr_attendance,self).create(cr, uid, vals, context=context)
         if 'sheet_id' in context:
