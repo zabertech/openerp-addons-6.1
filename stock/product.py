@@ -407,7 +407,7 @@ class product_product(osv.osv):
     }
 
     _defaults = {
-        'valuation': 'manual_periodic',
+        'valuation': 'real_time',
     }
 
     def fields_view_get(self, cr, uid, view_id=None, view_type='form', context=None, toolbar=False, submenu=False):
