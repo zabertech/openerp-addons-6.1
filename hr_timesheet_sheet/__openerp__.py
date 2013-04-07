@@ -60,7 +60,11 @@ The validation can be configured in the company:
         'board_hr_timesheet_view.xml',
         'report/hr_timesheet_report_view.xml',
         'report/timesheet_report_view.xml',
-        'wizard/hr_timesheet_current_view.xml',
+        # This is commented out as it's the simpliest way of ensuring that the
+        # values in this view XML don't conflict with the changes in 
+        # hr_timesheet_sheet_data.xml which automatically load the timesheet
+        # without showing a redundant dialog box.
+        # 'wizard/hr_timesheet_current_view.xml',
         'hr_timesheet_sheet_data.xml'
     ],
     'demo_xml': ['hr_timesheet_sheet_demo.xml',

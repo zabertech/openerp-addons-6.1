@@ -18,7 +18,15 @@
             <field eval="1" name="sequence"/>
             <field name="parent_id" ref="hr_attendance.menu_hr_time_tracking"/>
             <field name="icon">STOCK_JUSTIFY_FILL</field>
-            <field name="action" ref="ir_actions_server_timsheet_sheet"/>
+        </record>
+
+        <record model="ir.values" id="act_hr_timesheet_sheet_form_my_current_value">
+          <field name="name">Menuitem</field>
+          <field name="key">action</field>
+          <field name="key2">tree_but_open</field>
+          <field name="model">ir.ui.menu</field>
+          <field name="value" eval="'ir.actions.server,' + str(ref('ir_actions_server_timsheet_sheet'))" />
+          <field name="res_id" ref="menu_act_hr_timesheet_sheet_form_my_current" />
         </record>
 
     </data>
