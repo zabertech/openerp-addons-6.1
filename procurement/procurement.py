@@ -380,8 +380,6 @@ class procurement_order(osv.osv):
                      message = _("Not enough stock and no minimum orderpoint rule defined.")
                 elif not order_point_id:
                     message = _("No minimum orderpoint rule defined.")
-                elif not ok:
-                    message = _("Not enough stock.")
 
                 if message:
                     self.log(cr, uid, procurement.id, _("Procurement '%s' is in exception: ") % (procurement.name) + message)
