@@ -28,6 +28,9 @@ class invoice(osv.osv):
     def invoice_pay_customer(self, cr, uid, ids, context=None):
         if not ids: return []
         inv = self.browse(cr, uid, ids[0], context=context)
+        default_amount = inv.residual
+        if inv.type in ('out_refund', 'in_refund'):
+            default_amount *= -1
         return {
             'name':_("Pay Invoice"),
             'view_mode': 'form',
@@ -40,7 +43,7 @@ class invoice(osv.osv):
             'domain': '[]',
             'context': {
                 'default_partner_id': inv.partner_id.id,
-                'default_amount': inv.residual,
+                'default_amount': default_amount,
                 'default_name':inv.name,
                 'close_after_process': True,
                 'invoice_type':inv.type,
