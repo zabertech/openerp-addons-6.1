@@ -238,7 +238,7 @@ class account_voucher(osv.osv):
                     voucher_rate = self.browse(cr, uid, voucher.id, context=ctx).currency_id.rate
                     company_currency_rate = voucher.company_id.currency_id.rate
                     rate = voucher_rate * company_currency_rate
-            res[voucher.id] =  self.pool.get('res.currency').round(cr, uid, voucher.company_id.currency_id, (voucher.amount / rate))
+            res[voucher.id] =  self.pool.get('res.currency').round(cr, uid, voucher.company_id.currency_id, (voucher.amount * rate))
         return res
 
     _name = 'account.voucher'
@@ -870,7 +870,7 @@ class account_voucher(osv.osv):
                 'period_id': voucher_brw.period_id.id,
                 'partner_id': voucher_brw.partner_id.id,
                 'currency_id': company_currency <> current_currency and  current_currency or False,
-                'amount_currency': company_currency <> current_currency and sign * voucher_brw.amount or 0.0,
+                'amount_currency': company_currency <> current_currency and sign * abs(voucher_brw.amount) or 0.0,
                 'date': voucher_brw.date,
                 'date_maturity': voucher_brw.date_due
             }
@@ -1025,6 +1025,12 @@ class account_voucher(osv.osv):
             # currency rate difference
             if line.amount == line.amount_unreconciled:
                 currency_rate_difference = line.move_line_id.amount_residual - amount
+                if voucher_brw.type in ('payment', 'purchase'):
+                    if line.type == 'cr':
+                        currency_rate_difference *= -1
+                else:
+                    if line.type == 'dr':
+                        currency_rate_difference *= -1
             else:
                 currency_rate_difference = 0.0
             move_line = {
@@ -1085,7 +1091,7 @@ class account_voucher(osv.osv):
                         # otherwise we use the rates of the system (giving the voucher date in the context)
                         amount_currency = currency_obj.compute(cr, uid, company_currency, line.move_line_id.currency_id.id, move_line['debit']-move_line['credit'], context=ctx)
                 if line.amount == line.amount_unreconciled and line.move_line_id.currency_id.id == voucher_currency:
-                    sign = voucher_brw.type in ('payment', 'purchase') and -1 or 1
+                    sign = line.type == 'dr' and -1 or 1
                     foreign_currency_diff = sign * line.move_line_id.amount_residual_currency + amount_currency
 
             move_line['amount_currency'] = amount_currency
