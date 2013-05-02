@@ -813,11 +813,11 @@ class account_move_line(osv.osv):
         partner_id = False
         if context is None:
             context = {}
-        company_list = []
+        company = None
         for line in self.browse(cr, uid, ids, context=context):
-            if company_list and not line.company_id.id in company_list:
+            if company and line.company_id.id != company.id:
                 raise osv.except_osv(_('Warning !'), _('To reconcile the entries company should be the same for all entries'))
-            company_list.append(line.company_id.id)
+            company = line.company_id
         for line in unrec_lines:
             if line.state <> 'valid':
                 raise osv.except_osv(_('Error'),
@@ -852,6 +852,16 @@ class account_move_line(osv.osv):
             pass
         elif (not currency_obj.is_zero(cr, uid, account.company_id.currency_id, writeoff)) or \
            (account.currency_id and (not currency_obj.is_zero(cr, uid, account.currency_id, currency))):
+            # look up default writeoff account if needed
+            if not writeoff_acc_id and company:
+                if writeoff > 0:
+                    writeoff_acc_id = company.expense_currency_exchange_account_id.id
+                    if not writeoff_acc_id:
+                        raise osv.except_osv(_('Warning'),_("Unable to create accounting entry for currency rate difference. You have to configure the field 'Income Currency Rate' on the company! "))
+                else:
+                    writeoff_acc_id = company.income_currency_exchange_account_id.id
+                    if not writeoff_acc_id:
+                        raise osv.except_osv(_('Warning'),_("Unable to create accounting entry for currency rate difference. You have to configure the field 'Expense Currency Rate' on the company! "))
             if not writeoff_acc_id:
                 raise osv.except_osv(_('Warning'), _('You have to provide an account for the write off/exchange difference entry !'))
             if writeoff > 0:
