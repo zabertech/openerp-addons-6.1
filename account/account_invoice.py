@@ -104,6 +104,8 @@ class account_invoice(osv.osv):
                                 continue
                             checked_partial_rec_ids.append(partial_reconcile_id)
                         result[invoice.id] += move_line.amount_residual_currency
+            if invoice.type in ('in_invoice', 'out_refund'):
+                result[invoice.id] *= -1
         return result
 
     # Give Journal Items related to the payment reconciled to this invoice
