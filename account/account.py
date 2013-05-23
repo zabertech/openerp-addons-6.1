@@ -1404,7 +1404,6 @@ class account_move(osv.osv):
                         'reconcile_partial_id':False,
                         'analytic_lines':False,
                         'invoice':False,
-                        'ref':False,
                         'balance':False,
                         'account_tax_id':False,
                     })
