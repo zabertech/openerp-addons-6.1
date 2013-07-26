@@ -539,15 +539,20 @@ class mail_message(osv.osv):
                 else:
                     message.write({'state':'exception'})
                     message_sent = False
+                    
+                # we never want to delete mail. We would like to keep all emails sent through
+                # the system for archival purposes. If an errant mass mailing gets out, we'd 
+                # like to be able to track down WHO got those emails.
+
 
                 # if auto_delete=True then delete that sent messages as well as attachments
-                if message_sent and message.auto_delete:
-                    self.pool.get('ir.attachment').unlink(cr, uid,
-                                                          [x.id for x in message.attachment_ids \
-                                                                if x.res_model == self._name and \
-                                                                   x.res_id == message.id],
-                                                          context=context)
-                    message.unlink()
+#                if message_sent and message.auto_delete:
+#                    self.pool.get('ir.attachment').unlink(cr, uid,
+#                                                          [x.id for x in message.attachment_ids \
+#                                                                if x.res_model == self._name and \
+#                                                                   x.res_id == message.id],
+#                                                          context=context)
+#                    message.unlink()
             except Exception:
                 _logger.exception('failed sending mail.message %s', message.id)
                 message.write({'state':'exception'})
