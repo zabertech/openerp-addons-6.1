@@ -8,7 +8,7 @@
             <field name="state">code</field>
             <field name="type">ir.actions.server</field>
             <field name="model_id" ref="account.model_account_invoice"/>
-            <field name="condition">True</field>
+            <field name="condition">False</field>
             <field name="name">Auto-email confirmed invoices</field>
         </record>
 

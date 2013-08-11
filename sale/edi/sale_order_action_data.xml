@@ -7,7 +7,7 @@
             <field name="state">code</field>
             <field name="type">ir.actions.server</field>
             <field name="model_id" ref="sale.model_sale_order"/>
-            <field name="condition">True</field>
+            <field name="condition">False</field>
             <field name="name">Auto-email confirmed sale orders</field>
         </record>
 
