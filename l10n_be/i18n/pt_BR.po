@@ -7,14 +7,14 @@ msgstr ""
 "Project-Id-Version: OpenERP Server 5.0.4\n"
 "Report-Msgid-Bugs-To: support@openerp.com\n"
 "POT-Creation-Date: 2011-12-23 09:56+0000\n"
-"PO-Revision-Date: 2012-02-17 09:10+0000\n"
-"Last-Translator: Emerson <Unknown>\n"
+"PO-Revision-Date: 2013-07-28 09:28+0000\n"
+"Last-Translator: Claudio de Araujo Santos <claudioaraujosantos@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2012-08-28 09:48+0000\n"
-"X-Generator: Launchpad (build 15864)\n"
+"X-Launchpad-Export-Date: 2013-07-29 05:51+0000\n"
+"X-Generator: Launchpad (build 16700)\n"
 
 #. module: l10n_be
 #: field:partner.vat.intra,test_xml:0
@@ -25,18 +25,21 @@ msgstr "Test XML file"
 #: view:partner.vat.list_13:0
 msgid "You can remove customers which you do not want in exported xml file"
 msgstr ""
+"Você pode remover os clientes não quer incluir no arquivo xml a ser exportado"
 
 #. module: l10n_be
-#: view:partner.vat_13:0
+#: view:partner.vat:0
 msgid ""
 "This wizard will create an XML file for VAT details and total invoiced "
 "amounts per partner."
 msgstr ""
+"Este assistente irá criar um arquivo XML para detalhamento de VAT e "
+"quantidades totais faturadas por parceiro."
 
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_tiers_receiv
 msgid "Tiers - Recevable"
-msgstr ""
+msgstr "Níveis - Contas a Receber"
 
 #. module: l10n_be
 #: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:102
@@ -59,7 +62,7 @@ msgstr "Error! You can not create recursive companies."
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_tiers
 msgid "Tiers"
-msgstr ""
+msgstr "Níveis"
 
 #. module: l10n_be
 #: field:l1on_be.vat.declaration,period_id:0
@@ -74,38 +77,36 @@ msgstr "Period (s)"
 #. module: l10n_be
 #: view:l1on_be.vat.declaration:0
 #: view:partner.vat.intra:0
+#: view:partner.vat.list:0
 msgid "Save the File with '.xml' extension."
 msgstr "Save the File with '.xml' extension."
 
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_charge
 msgid "Charge"
-msgstr ""
+msgstr "Despesa"
 
 #. module: l10n_be
-#: code:addons/l10n_be/wizard/l10n_be_partner_vat_listing.py:47
-#: code:addons/l10n_be/wizard/l10n_be_partner_vat_listing.py:52
-#: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:105
-#: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:109
+#: code:addons/l10n_be/wizard/l10n_be_partner_vat_listing.py:265
 #, python-format
 msgid "Data Insufficient!"
 msgstr "Data Insufficient!"
 
 #. module: l10n_be
 #: view:l1on_be.vat.declaration:0
-#: view:partner.vat.list_13:0
+#: view:partner.vat.list:0
 msgid "Create XML"
 msgstr "Create XML"
 
 #. module: l10n_be
-#: model:account.account.type,name:l10n_be.user_type_capitaux
+#: model:account.financial.report,name:l10n_be.account_financial_report_capital2
 msgid "Capital"
-msgstr ""
+msgstr "Capital"
 
 #. module: l10n_be
-#: view:partner.vat.list_13:0
+#: view:partner.vat.list:0
 msgid "Print"
-msgstr ""
+msgstr "Impressão"
 
 #. module: l10n_be
 #: view:partner.vat.intra:0
@@ -113,7 +114,7 @@ msgid "Save XML"
 msgstr "Save XML"
 
 #. module: l10n_be
-#: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:219
+#: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:258
 #, python-format
 msgid "Save"
 msgstr "Save"
@@ -121,35 +122,34 @@ msgstr "Save"
 #. module: l10n_be
 #: sql_constraint:res.company:0
 msgid "The company name must be unique !"
-msgstr ""
+msgstr "O nome da empresa deve ser único!"
 
 #. module: l10n_be
 #: field:l1on_be.vat.declaration,msg:0
 #: field:partner.vat.intra,msg:0
-#: field:partner.vat.list_13,msg:0
 msgid "File created"
 msgstr "File created"
 
 #. module: l10n_be
 #: view:partner.vat.intra:0
 msgid "_Close"
-msgstr ""
+msgstr "_Fechar"
 
 #. module: l10n_be
-#: code:addons/l10n_be/wizard/l10n_be_account_vat_declaration.py:131
+#: code:addons/l10n_be/wizard/l10n_be_account_vat_declaration.py:201
 #, python-format
 msgid "Save XML For Vat declaration"
 msgstr "Save XML For Vat declaration"
 
 #. module: l10n_be
-#: view:partner.vat.list_13:0
+#: view:partner.vat.list:0
 msgid "Customers"
-msgstr ""
+msgstr "Clientes"
 
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_tax_in
 msgid "Taxes à l'entrée"
-msgstr ""
+msgstr "Entrada impostos"
 
 #. module: l10n_be
 #: help:l1on_be.vat.declaration,ask_restitution:0
@@ -162,7 +162,6 @@ msgid "Vat Declaraion"
 msgstr "Vat Declaraion"
 
 #. module: l10n_be
-#: view:partner.vat.intra:0
 #: field:partner.vat.intra,no_vat:0
 msgid "Partner With No VAT"
 msgstr "Partner With No VAT"
@@ -170,18 +169,19 @@ msgstr "Partner With No VAT"
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_immo
 msgid "Immobilisation"
-msgstr ""
+msgstr "Imobilização"
 
 #. module: l10n_be
 #: view:l1on_be.vat.declaration:0
 #: view:partner.vat.intra:0
+#: field:partner.vat.intra,tax_code_id:0
 msgid "Company"
 msgstr "Company"
 
 #. module: l10n_be
 #: model:ir.model,name:l10n_be.model_partner_vat_13
 msgid "partner.vat_13"
-msgstr ""
+msgstr "partner.vat_13"
 
 #. module: l10n_be
 #: model:ir.ui.menu,name:l10n_be.partner_vat_listing
@@ -189,7 +189,7 @@ msgid "Annual Listing Of VAT-Subjected Customers"
 msgstr "Annual Listing Of VAT-Subjected Customers"
 
 #. module: l10n_be
-#: view:partner.vat.list_13:0
+#: view:partner.vat.list:0
 msgid "XML File has been Created."
 msgstr "XML File has been Created."
 
@@ -232,18 +232,17 @@ msgstr "Note: "
 #. module: l10n_be
 #: view:partner.vat.intra:0
 msgid "_Preview"
-msgstr ""
+msgstr "_PREVIEW"
 
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_tiers_payable
 msgid "Tiers - Payable"
-msgstr ""
+msgstr "Terceiro - Payable"
 
 #. module: l10n_be
 #: field:l1on_be.vat.declaration,tax_code_id:0
-#: field:partner.vat.intra,tax_code_id:0
 msgid "Tax Code"
-msgstr "Tax Code"
+msgstr "Código do Imposto"
 
 #. module: l10n_be
 #: view:partner.vat.intra:0
@@ -253,7 +252,7 @@ msgstr "Periods"
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_produit
 msgid "Produit"
-msgstr ""
+msgstr "Produto"
 
 #. module: l10n_be
 #: help:partner.vat.intra,test_xml:0
@@ -263,7 +262,7 @@ msgstr "Sets the XML output as test file"
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_view
 msgid "Vue"
-msgstr ""
+msgstr "Ver"
 
 #. module: l10n_be
 #: view:l1on_be.vat.declaration:0
@@ -283,7 +282,7 @@ msgstr ""
 "The Partner whose VAT number is not defined they doesn't include in XML File."
 
 #. module: l10n_be
-#: field:partner.vat_13,limit_amount:0
+#: field:partner.vat,limit_amount:0
 msgid "Limit Amount"
 msgstr "Limit Amount"
 
@@ -295,7 +294,7 @@ msgstr "Companies"
 #. module: l10n_be
 #: view:partner.vat.intra:0
 msgid "Create _XML"
-msgstr ""
+msgstr "Criar _xml"
 
 #. module: l10n_be
 #: help:partner.vat.intra,period_ids:0
@@ -305,9 +304,9 @@ msgstr ""
 "Select here the period(s) you want to include in your intracom declaration"
 
 #. module: l10n_be
-#: view:partner.vat_13:0
+#: view:partner.vat:0
 msgid "View Customers"
-msgstr ""
+msgstr "Ver Clientes"
 
 #. module: l10n_be
 #: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:102
@@ -323,7 +322,7 @@ msgstr "Is Last Declaration"
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_stock
 msgid "Stock et Encours"
-msgstr ""
+msgstr "Estoque e Outstanding"
 
 #. module: l10n_be
 #: field:l1on_be.vat.declaration,client_nihil:0
@@ -365,7 +364,7 @@ msgstr "Declare Periodical VAT"
 #. module: l10n_be
 #: model:ir.model,name:l10n_be.model_partner_vat_list_13
 msgid "partner.vat.list_13"
-msgstr ""
+msgstr "partner.vat.list_13"
 
 #. module: l10n_be
 #: view:l1on_be.vat.declaration:0
@@ -380,7 +379,7 @@ msgstr "MandataireId"
 #. module: l10n_be
 #: field:l1on_be.vat.declaration,file_save:0
 #: field:partner.vat.intra,file_save:0
-#: field:partner.vat.list_13,file_save:0
+#: field:partner.vat.list,file_save:0
 msgid "Save File"
 msgstr "Salvar arquivo"
 
@@ -410,19 +409,19 @@ msgstr ""
 #. module: l10n_be
 #: field:l1on_be.vat.declaration,name:0
 #: field:partner.vat.intra,name:0
-#: field:partner.vat.list_13,name:0
+#: field:partner.vat.list,name:0
 msgid "File Name"
 msgstr "File Name"
 
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_tax_out
 msgid "Taxes à la sortie"
-msgstr ""
+msgstr "Os impostos de saída"
 
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_tax
 msgid "Tax"
-msgstr ""
+msgstr "Imposto"
 
 #. module: l10n_be
 #: code:addons/l10n_be/wizard/l10n_be_account_vat_declaration.py:75
@@ -433,6 +432,7 @@ msgid "No VAT Number Associated with Main Company!"
 msgstr "No VAT Number Associated with Main Company!"
 
 #. module: l10n_be
+#: model:ir.actions.act_window,name:l10n_be.action_vat_declaration
 #: model:ir.model,name:l10n_be.model_l1on_be_vat_declaration
 msgid "Vat Declaration"
 msgstr "Vat Declaration"
@@ -444,8 +444,8 @@ msgid "European Countries"
 msgstr "European Countries"
 
 #. module: l10n_be
-#: model:ir.actions.act_window,name:l10n_be.action_partner_vat_listing_13
-#: view:partner.vat_13:0
+#: model:ir.actions.act_window,name:l10n_be.action_partner_vat_listing
+#: view:partner.vat:0
 msgid "Partner VAT Listing"
 msgstr "Partner VAT Listing"
 
@@ -467,15 +467,18 @@ msgstr "Period Code"
 #. module: l10n_be
 #: model:account.account.type,name:l10n_be.user_type_financiers
 msgid "Financier"
-msgstr ""
+msgstr "Financeiro"
 
 #. module: l10n_be
-#: field:partner.vat_13,year:0
+#: field:partner.vat,year:0
 msgid "Year"
-msgstr ""
+msgstr "Ano"
 
 #. module: l10n_be
-#: view:partner.vat_13:0
+#: view:l1on_be.vat.declaration:0
+#: view:partner.vat:0
+#: view:partner.vat.intra:0
+#: view:partner.vat.list:0
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -487,7 +490,7 @@ msgid "Close"
 msgstr "Close"
 
 #. module: l10n_be
-#: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:105
+#: code:addons/l10n_be/wizard/l10n_be_vat_intra.py:119
 #, python-format
 msgid "Please select at least one Period."
 msgstr "Please select at least one Period."
@@ -506,4 +509,4 @@ msgstr "Partner VAT intra"
 #: code:addons/l10n_be/wizard/l10n_be_partner_vat_listing.py:47
 #, python-format
 msgid "No data for the selected Year."
-msgstr ""
+msgstr "Não há dados para o ano selecionado."
