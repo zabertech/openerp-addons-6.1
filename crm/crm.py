@@ -146,7 +146,7 @@ class crm_case_categ(osv.osv):
     _name = "crm.case.categ"
     _description = "Category of Case"
     _columns = {
-        'name': fields.char('Name', size=64, required=True, translate=True),
+        'name': fields.char('Name', size=64, required=True),
         'section_id': fields.many2one('crm.case.section', 'Sales Team'),
         'object_id': fields.many2one('ir.model', 'Object Name'),
     }

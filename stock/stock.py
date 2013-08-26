@@ -147,7 +147,7 @@ class stock_location(osv.osv):
         return result
 
     _columns = {
-        'name': fields.char('Location Name', size=64, required=True, translate=True),
+        'name': fields.char('Location Name', size=64, required=True),
         'active': fields.boolean('Active', help="By unchecking the active field, you may hide a location without deleting it."),
         'usage': fields.selection([('supplier', 'Supplier Location'), ('view', 'View'), ('internal', 'Internal Location'), ('customer', 'Customer Location'), ('inventory', 'Inventory'), ('procurement', 'Procurement'), ('production', 'Production'), ('transit', 'Transit Location for Inter-Companies Transfers')], 'Location Type', required=True,
                  help="""* Supplier Location: Virtual location representing the source location for products coming from your suppliers
@@ -2115,6 +2115,8 @@ class stock_move(osv.osv):
         journal_id = accounts['stock_journal']
 
         if acc_dest == acc_valuation:
+            import pdb
+            pdb.set_trace()
             raise osv.except_osv(_('Error!'),  _('Can not create Journal Entry, Output Account defined on this product and Valuation account on category of this product are same.'))
 
         if acc_src == acc_valuation:

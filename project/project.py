@@ -37,7 +37,7 @@ class project_task_type(osv.osv):
     _description = 'Task Stage'
     _order = 'sequence'
     _columns = {
-        'name': fields.char('Stage Name', required=True, size=64, translate=True),
+        'name': fields.char('Stage Name', required=True, size=64),
         'description': fields.text('Description'),
         'sequence': fields.integer('Sequence'),
         'project_default': fields.boolean('Common to All Projects', help="If you check this field, this stage will be proposed by default on each new project. It will not assign this stage to existing projects."),
