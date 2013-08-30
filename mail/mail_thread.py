@@ -24,6 +24,7 @@ import tools
 import base64
 import email
 from email.utils import parsedate
+import datetime
 
 import logging
 import xmlrpclib
@@ -209,19 +210,36 @@ class mail_thread(osv.osv):
 
         for thread in threads:
             to_attach = []
+
+            attachment_index = 0
             for attachment in attachments:
                 fname, fcontent = attachment
+                attachment_index += 1
+
+                # This ensures that the filenames that come in are unique
+                # Previously, if someone sent us a resume.pdf then a second 
+                # person sent us a resume.pdf, the second would clobber the
+                # first.
+                munged_fname = "{timestamp}-{index}-{fname}".format(
+                                  timestamp=datetime.datetime.now().strftime('%Y%m%d-%H%M%S'),
+                                  index=attachment_index,
+                                  fname=fname
+                                )
+
                 if isinstance(fcontent, unicode):
                     fcontent = fcontent.encode('utf-8')
                 data_attach = {
-                    'name': fname,
+                    'name': munged_fname,
                     'datas': base64.b64encode(str(fcontent)),
                     'datas_fname': fname,
                     'description': _('Mail attachment'),
                     'res_model': thread._name,
                     'res_id': thread.id,
                 }
-                to_attach.append(ir_attachment.create(cr, uid, data_attach, context=context))
+                attachment_id = ir_attachment.create(cr, uid, data_attach, context=context)
+
+
+                to_attach.append(attachment_id)
 
             partner_id = hasattr(thread, 'partner_id') and (thread.partner_id and thread.partner_id.id or False) or False
             if not partner_id and thread._name == 'res.partner':
