@@ -231,7 +231,7 @@ class mail_thread(osv.osv):
                 data_attach = {
                     'name': munged_fname,
                     'datas': base64.b64encode(str(fcontent)),
-                    'datas_fname': fname,
+                    'datas_fname': munged_fname,
                     'description': _('Mail attachment'),
                     'res_model': thread._name,
                     'res_id': thread.id,
