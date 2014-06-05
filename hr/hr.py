@@ -180,13 +180,15 @@ class hr_employee(osv.osv):
     def unlink(self, cr, uid, ids, context=None):
         resource_obj = self.pool.get('resource.resource')
         resource_ids = []
+        unlink_status = False
         for employee in self.browse(cr, uid, ids, context=context):
             resource = employee.resource_id
             if resource:
                 resource_ids.append(resource.id)
+        unlink_status = super(hr_employee, self).unlink(cr, uid, ids, context=context)
         if resource_ids:
             resource_obj.unlink(cr, uid, resource_ids, context=context)
-        return super(hr_employee, self).unlink(cr, uid, ids, context=context)
+        return unlink_status
 
     def onchange_address_id(self, cr, uid, ids, address, context=None):
         if address:

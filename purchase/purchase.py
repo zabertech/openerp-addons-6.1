@@ -274,6 +274,14 @@ class purchase_order(osv.osv):
         return {'value':{'partner_address_id': supplier_address['default'], 'pricelist_id': pricelist, 'fiscal_position': fiscal_position}}
 
     def wkf_approve_order(self, cr, uid, ids, context=None):
+        for po in self.browse(cr, uid, ids, context=context):
+            for line in po.order_line:
+                if not line.product_id: continue
+                for seller_id in line.product_id.seller_ids:
+                    if po.partner_id.name == seller_id.name.name:
+                        break
+                else:
+                    raise osv.except_osv(_('Error !'),_('You cannot confirm a purchase order with purchases from a different supplier.'))
         self.write(cr, uid, ids, {'state': 'approved', 'date_approve': fields.date.context_today(self,cr,uid,context=context)})
         return True
 
@@ -286,6 +294,12 @@ class purchase_order(osv.osv):
             for line in po.order_line:
                 if line.state=='draft':
                     todo.append(line.id)
+                if not line.product_id: continue
+                for seller_id in line.product_id.seller_ids:
+                    if po.partner_id.name == seller_id.name.name:
+                        break
+                else:
+                    raise osv.except_osv(_('Error !'),_('You cannot confirm a purchase order with purchases from a different supplier.'))
             message = _("Purchase order '%s' is confirmed.") % (po.name,)
             self.log(cr, uid, po.id, message)
 #        current_name = self.name_get(cr, uid, ids)[0][1]
