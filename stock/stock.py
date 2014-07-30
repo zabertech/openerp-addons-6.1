@@ -1232,8 +1232,15 @@ class stock_picking(osv.osv):
                         product_avail[product.id] = product.qty_available
 
                     if qty > 0:
+                        # BUG FIX adding round=False parameter so that the Cost Price
+                        # calulation upon receiving a product, when using averaging, gets
+                        # the full digits of precision
+                        # -18 July 2014 Tracy Lau, tracy@zaber.com
+                        # ORIGINAL:
+                        # new_price = currency_obj.compute(cr, uid, product_currency,
+                        #       move_currency_id, product_price)
                         new_price = currency_obj.compute(cr, uid, product_currency,
-                                move_currency_id, product_price)
+                                move_currency_id, product_price, round=False)
                         new_price = uom_obj._compute_price(cr, uid, product_uom, new_price,
                                 product.uom_id.id)
                         if product.qty_available <= 0:
@@ -2535,8 +2542,15 @@ class stock_move(osv.osv):
                 context['currency_id'] = move_currency_id
                 qty = uom_obj._compute_qty(cr, uid, product_uom, product_qty, product.uom_id.id)
                 if qty > 0:
+                    # BUG FIX adding round=False parameter so that the Cost Price
+                    # calulation upon receiving a product, when using averaging, gets
+                    # the full digits of precision
+                    # -18 July 2014 Tracy Lau, tracy@zaber.com
+                    # ORIGINAL:
+                    # new_price = currency_obj.compute(cr, uid, product_currency,
+                    #       move_currency_id, product_price)
                     new_price = currency_obj.compute(cr, uid, product_currency,
-                            move_currency_id, product_price)
+                            move_currency_id, product_price, round=False)
                     new_price = uom_obj._compute_price(cr, uid, product_uom, new_price,
                             product.uom_id.id)
                     if product.qty_available <= 0:

@@ -652,8 +652,16 @@ class product_product(osv.osv):
             if 'currency_id' in context:
                 # Take the price_type currency from the product field
                 # This is right cause a field cannot be in more than one currency
+
+                # BUG FIX adding round=False parameter so that the Cost Price
+                # calulation upon receiving a product, when using averaging, gets
+                # the full digits of precision
+                # -18 July 2014 Tracy Lau, tracy@zaber.com
+                # ORIGINAL:
+                # res[product.id] = self.pool.get('res.currency').compute(cr, uid, price_type_currency_id,
+                #   context['currency_id'], res[product.id],context=context)
                 res[product.id] = self.pool.get('res.currency').compute(cr, uid, price_type_currency_id,
-                    context['currency_id'], res[product.id],context=context)
+                    context['currency_id'], res[product.id],round=False,context=context)
 
         return res
 
