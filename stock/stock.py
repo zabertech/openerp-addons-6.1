@@ -2202,7 +2202,6 @@ class stock_move(osv.osv):
                 journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation(cr, uid, move, dest_company_ctx)
                 reference_amount, reference_currency_id = self._get_reference_accounting_values_for_valuation(cr, uid, move, src_company_ctx)
                 account_moves += [(journal_id, self._create_account_move_line(cr, uid, move, acc_src, acc_valuation, reference_amount, reference_currency_id, context))]
-
             move_obj = self.pool.get('account.move')
             for j_id, move_lines in account_moves:
                 move_obj.create(cr, uid,
@@ -2304,7 +2303,7 @@ class stock_move(osv.osv):
             # fix credit line:
             credit_line_vals['credit'] = cur_obj.compute(cr, uid, reference_currency_id, src_main_currency_id, reference_amount, context=context)
             if (not src_acct.currency_id) or src_acct.currency_id.id == reference_currency_id:
-                credit_line_vals.update(currency_id=reference_currency_id, amount_currency=reference_amount)
+                credit_line_vals.update(currency_id=reference_currency_id, amount_currency=-1 * reference_amount)
         if reference_currency_id != dest_main_currency_id:
             # fix debit line:
             debit_line_vals['debit'] = cur_obj.compute(cr, uid, reference_currency_id, dest_main_currency_id, reference_amount, context=context)

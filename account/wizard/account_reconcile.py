@@ -63,7 +63,7 @@ class account_move_line_reconcile(osv.osv_memory):
                 credit += line.credit
                 debit += line.debit
                 account_id = line.account_id.id
-        return {'trans_nbr': count, 'account_id': account_id, 'credit': credit, 'debit': debit, 'writeoff': debit - credit}
+        return {'trans_nbr': count, 'account_id': account_id, 'credit': credit, 'debit': debit, 'writeoff': round(debit - credit,2)}
 
     def trans_rec_addendum_writeoff(self, cr, uid, ids, context=None):
         return self.pool.get('account.move.line.reconcile.writeoff').trans_rec_addendum(cr, uid, ids, context)

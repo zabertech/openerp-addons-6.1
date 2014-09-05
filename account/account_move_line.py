@@ -827,7 +827,7 @@ class account_move_line(osv.osv):
             currency += line['amount_currency'] or 0.0
             account_id = line['account_id']['id']
             partner_id = (line['partner_id'] and line['partner_id']['id']) or False
-        writeoff = debit - credit
+        writeoff = round(debit - credit, 2)
 
         # Ifdate_p in context => take this date
         date = context.get('date_p') or time.strftime(tools.DEFAULT_SERVER_DATE_FORMAT)
