@@ -1610,7 +1610,7 @@ class stock_move(osv.osv):
         'company_id': fields.many2one('res.company', 'Company', required=True, select=True),
         'partner_id': fields.related('picking_id','address_id','partner_id',type='many2one', relation="res.partner", string="Partner", store=True, select=True),
         'backorder_id': fields.related('picking_id','backorder_id',type='many2one', relation="stock.picking", string="Back Order", select=True),
-        'origin': fields.related('picking_id','origin',type='char', size=64, relation="stock.picking", string="Origin", store=True),
+        'origin': fields.related('picking_id','origin',type='char', size=64, relation="stock.picking", string="Origin", store=True, noupdatestore=True),
 
         # used for colors in tree views:
         'scrapped': fields.related('location_dest_id','scrap_location',type='boolean',relation='stock.location',string='Scrapped', readonly=True),

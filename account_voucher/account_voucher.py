@@ -62,7 +62,10 @@ class account_voucher(osv.osv):
         if context is None: context = {}
         if context.get('period_id', False):
             return context.get('period_id')
-        periods = self.pool.get('account.period').find(cr, uid)
+        if context.get('date', False):
+            periods = self.pool.get('account.period').find(cr, uid,context.get('date'))
+        else:
+            periods = self.pool.get('account.period').find(cr, uid)
         return periods and periods[0] or False
 
     def _make_journal_search(self, cr, uid, ttype, context=None):
@@ -1172,6 +1175,13 @@ class account_voucher(osv.osv):
                 'analytic_account_id': voucher_brw.analytic_id and voucher_brw.analytic_id.id or False,
             }
 
+            # Convert amount currency to a signed number representing debit or
+            # credit depending on the value of the move line.
+            # Added by Colin Ligertwood <colin@zaber.com> 2014-09-16
+            # References bug #772
+            if company_currency != current_currency:
+                move_line['amount_currency'] = -(cmp(diff, 0) * voucher_brw.writeoff_amount)
+
         return move_line
 
     def _get_company_currency(self, cr, uid, voucher_id, context=None):
@@ -1248,16 +1258,17 @@ class account_voucher(osv.osv):
         return True
 
     def copy(self, cr, uid, id, default={}, context=None):
+        if 'date' not in default:
+            default['date'] = time.strftime('%Y-%m-%d')
         default.update({
             'state': 'draft',
             'number': False,
             'move_id': False,
             'line_cr_ids': False,
             'line_dr_ids': False,
-            'reference': False
+            'reference': False,
+            'period_id': self._get_period(cr, uid)
         })
-        if 'date' not in default:
-            default['date'] = time.strftime('%Y-%m-%d')
         return super(account_voucher, self).copy(cr, uid, id, default, context)
 
 account_voucher()
