@@ -684,120 +684,336 @@ class mrp_production(osv.osv):
         return 1
 
     def action_produce(self, cr, uid, production_id, production_qty, production_mode, context=None):
-        """ To produce final product based on production mode (consume/consume&produce).
-        If Production mode is consume, all stock move lines of raw materials will be done/consumed.
-        If Production mode is consume & produce, all stock move lines of raw materials will be done/consumed
-        and stock move lines of final product will be also done/produced.
-        @param production_id: the ID of mrp.production object
-        @param production_qty: specify qty to produce
-        @param production_mode: specify production mode (consume/consume&produce).
-        @return: True
         """
-        stock_mov_obj = self.pool.get('stock.move')
-        production = self.browse(cr, uid, production_id, context=context)
+        Rewritten by Colin Ligertwood <colin@zaber.com> 2014-11-07
+        Now can handle more than one scheduled line of the same product
+        Improved clarity of code, and many more comments
+        Written in response to issue http://bugs/issues/919
+        """
+        move_obj = self.pool.get('stock.move')
 
-        produced_qty = 0
-        for produced_product in production.move_created_ids2:
-            if (produced_product.scrapped) or (produced_product.product_id.id <> production.product_id.id):
+        this_order = self.browse(cr, uid, production_id, context=context)
+
+        # Determine how much of the finished product on this order has already
+        # been produced in previous runs of action_produce
+        finished_product_produced_qty = 0
+        for move in this_order.move_created_ids2:
+
+            # Don't count scrapped moves, or product which doesn't belong to this order
+            if move.scrapped or move.product_id.id != this_order.product_id.id:
                 continue
-            produced_qty += produced_product.product_qty
 
-        if production_mode in ['consume','consume_produce']:
-            consumed_data = {}
+            finished_product_produced_qty += move.product_qty
 
-            # Calculate already consumed qtys
-            for consumed in production.move_lines2:
-                if consumed.scrapped:
-                    continue
-                if not consumed_data.get(consumed.product_id.id, False):
-                    consumed_data[consumed.product_id.id] = 0
-                consumed_data[consumed.product_id.id] += consumed.product_qty
+        if production_mode in ['consume', 'consume_produce']:
 
-            # Find product qty to be consumed and consume it
-            for scheduled in production.product_lines:
+            # Make a list of all component product_ids scheduled for consumption
+            component_products = [p.product_id.id for p in this_order.product_lines]
 
-                # total qty of consumed product we need after this consumption
-                total_consume = ((production_qty + produced_qty) * scheduled.product_qty / production.product_qty)
+            # Determine how much of the component products scheduled to be
+            # consumed in this order have already been consumed in previous
+            # runs of action_produce
+            component_product_consumed_qty = {}
+            for move in this_order.move_lines2:
 
-                # qty available for consume and produce
-                qty_avail = scheduled.product_qty - consumed_data.get(scheduled.product_id.id, 0.0)
-
-                if qty_avail <= 0.0:
-                    # there will be nothing to consume for this raw material
+                # Don't count moves which have been scrapped
+                if move.scrapped:
                     continue
 
-                raw_product = [move for move in production.move_lines if move.product_id.id==scheduled.product_id.id]
-                if raw_product:
-                    # qtys we have to consume
-                    qty = total_consume - consumed_data.get(scheduled.product_id.id, 0.0)
-                    if float_compare(qty, qty_avail, precision_rounding=scheduled.product_id.uom_id.rounding) == 1:
-                        # if qtys we have to consume is more than qtys available to consume
-                        prod_name = scheduled.product_id.name_get()[0][1]
-                        raise osv.except_osv(_('Warning!'), _('You are going to consume total %s quantities of "%s".\nBut you can only consume up to total %s quantities.') % (qty, prod_name, qty_avail))
-                    if qty <= 0.0:
-                        # we already have more qtys consumed than we need 
-                        continue
+                # Cache some values so we don't do too much work with expensive
+                # browse objects
+                move_product_id = move.product_id.id
+                move_product_qty = move.product_qty
 
-                    consumed = 0
-                    rounding = raw_product[0].product_uom.rounding
+                if not component_product_consumed_qty.get(move_product_id, False):
+                    component_product_consumed_qty[move_product_id] = 0.0
+                component_product_consumed_qty[move_product_id] = move_product_qty
 
-                    # sort the list by quantity, to consume smaller quantities first and avoid splitting if possible
-                    raw_product.sort(key=attrgetter('product_qty'))
+            # Determine the total qty of each component product is scheduled to
+            # be consumed in this order
+            component_product_scheduled_qty = {}
+            for line in this_order.product_lines:
 
-                    # search for exact quantity
-                    for consume_line in raw_product:
-                        if tools.float_compare(consume_line.product_qty, qty, precision_rounding=rounding) == 0:
-                            # consume this line
-                            consume_line.action_consume(qty, consume_line.location_id.id, context=context)
-                            consumed = qty
-                            break
+                # Cache some values from the browse object
+                line_product_id = line.product_id.id
+                line_product_qty = line.product_qty
 
-                    index = 0                        
-                    # consume the smallest quantity while we have not consumed enough
-                    while tools.float_compare(consumed, qty, precision_rounding=rounding) == -1 and index < len(raw_product):
-                        consume_line = raw_product[index]
-                        to_consume = min(consume_line.product_qty, qty - consumed) 
-                        consume_line.action_consume(to_consume, consume_line.location_id.id, context=context)
-                        consumed += to_consume
-                        index += 1
+                if not component_product_scheduled_qty.get(line_product_id, False):
+                    component_product_scheduled_qty[line_product_id] = 0
+                component_product_scheduled_qty[line_product_id] += line_product_qty
+
+            # Get rounding precision of each component product for later use
+            component_product_rounding_precision = {}
+            for line in this_order.product_lines:
+
+                # Cache some values from the browse object
+                line_product_id = line.product_id.id
+
+                if not component_product_rounding_precision.get(line.product_id.id, False):
+                    component_product_rounding_precision[line_product_id] = line.product_id.uom_id.rounding
+
+            # Do all the work of consuming the necessary components for this run
+            # of action_produce
+            for component_product_id in component_products:
+
+                # Fetch all stock moves for this component product which have
+                # not been consumed yet
+                component_moves = []
+                for move in this_order.move_lines:
+                    if move.product_id.id == component_product_id:
+                        component_moves.append(move)
+
+                # If there are no more stock moves left to process for this
+                # product, move on to the next product_id
+                if not component_moves:
+                    continue
+
+                # Get remaining unconsumed qty of component product
+                component_product_remaining_qty = component_product_scheduled_qty[component_product_id] - component_product_consumed_qty.get(component_product_id, 0)
+
+                # If we've consumed all of the scheduled component, move on to
+                # the next product
+                if component_product_remaining_qty <= 0.0:
+                    continue
+
+                # Make sure we have enough qty remaining of this component
+                # to consume for this run of action_produce. This is very round
+                # about so we don't have to open any BOM to determine how much
+                # of a given component is required.
+
+                # Project total qty of component which will have been consumed
+                # after this run of action_produce
+                component_per_finished_product_qty = component_product_scheduled_qty[component_product_id] / this_order.product_qty
+                projected_finished_product_produced_qty = (production_qty + finished_product_produced_qty)
+                projected_component_product_consumed_qty = component_per_finished_product_qty * projected_finished_product_produced_qty
+
+                # Determine how much of component will be consumed on this run
+                # of action_produce
+                component_product_qty_to_consume = projected_component_product_consumed_qty - component_product_consumed_qty.get(component_product_id, 0)
+
+                # If there is no more of this component product to consume, move
+                # on to the next product_id
+                if component_product_qty_to_consume <= 0.0:
+                    continue
+
+                # If there is not enough component product left to consume for
+                # this run of actuon_produce, raise. Float comparison with custom
+                # rounding precision per product
+                if float_compare(component_product_qty_to_consume,
+                                 component_product_remaining_qty,
+                                 precision_rounding=component_product_rounding_precision[component_product_id]) == 1:
+                    raise osv.except_osv(_('Warning!', _('Insufficient component stock scheduled to complete this order.')))
+
+                # Sort our component stock moves so we consume lowest quantity
+                # first and avoid splitting stock moves if possible
+                component_moves.sort(key=attrgetter('product_qty'))
+
+                # Keep track of how much we've consumed incase we need to do
+                # stock move splitting
+                consumed = 0
+
+                # Try and find a component stock move which exactly matches the
+                # qty we want to consume, and consume it
+                for move in component_moves:
+                    if float_compare(move.product_qty, component_product_qty_to_consume,
+                                     precision_rounding=component_product_rounding_precision[component_product_id]) == 0:
+                        move_obj.action_consume(cr, uid, [move.id], component_product_qty_to_consume, move.location_id.id, context=context)
+                        consumed = component_product_qty_to_consume
+                        break
+
+                # Consume the rest of the component stock from our remaining
+                # pool of unconsumed stock moves
+                for move in component_moves:
+                    if float_compare(consumed, component_product_qty_to_consume,
+                                     precision_rounding=component_product_rounding_precision[component_product_id]) != -1:
+                        break
+                    to_consume = min(move.product_qty, component_product_qty_to_consume - consumed)
+                    move_obj.action_consume(cr, uid, [move.id], to_consume, move.location_id.id, context=context)
+                    consumed += to_consume
 
         if production_mode == 'consume_produce':
-            # To produce remaining qty of final product
-            #vals = {'state':'confirmed'}
-            #final_product_todo = [x.id for x in production.move_created_ids]
-            #stock_mov_obj.write(cr, uid, final_product_todo, vals)
-            #stock_mov_obj.action_confirm(cr, uid, final_product_todo, context)
-            produced_products = {}
-            for produced_product in production.move_created_ids2:
-                if produced_product.scrapped:
+
+            # Determine qty of finished products already produced
+            finished_products_produced_qty = {}
+            for move in this_order.move_created_ids2:
+
+                # Don't count stock moves which have been scrapped
+                if move.scrapped:
                     continue
-                if not produced_products.get(produced_product.product_id.id, False):
-                    produced_products[produced_product.product_id.id] = 0
-                produced_products[produced_product.product_id.id] += produced_product.product_qty
 
-            for produce_product in production.move_created_ids:
-                produced_qty = produced_products.get(produce_product.product_id.id, 0)
-                subproduct_factor = self._get_subproduct_factor(cr, uid, production.id, produce_product.id, context=context)
-                rest_qty = (subproduct_factor * production.product_qty) - produced_qty
+                # Cache some values from the browse object
+                move_product_id = move.product_id.id
 
-                if rest_qty < production_qty:
-                    prod_name = produce_product.product_id.name_get()[0][1]
-                    raise osv.except_osv(_('Warning!'), _('You are going to produce total %s quantities of "%s".\nBut you can only produce up to total %s quantities.') % (production_qty, prod_name, rest_qty))
-                if rest_qty > 0 :
-                    stock_mov_obj.action_consume(cr, uid, [produce_product.id], (subproduct_factor * production_qty), context=context)
+                if not finished_products_produced_qty.get(move_product_id, False):
+                    finished_products_produced_qty['move_product_id'] = 0
+                finished_products_produced_qty['move_product_id'] = move.product_qty
 
-        for raw_product in production.move_lines2:
+            # Complete the stock moves of finished products which have been produced
+            for move in this_order.move_created_ids:
+
+                # Cache some values from the browse object
+                move_product_id = move.product_id.id
+
+                finished_product_produced_qty = finished_products_produced_qty.get(move_product_id, 0)
+                subproduct_factor = self._get_subproduct_factor(cr, uid, production_id, move.id, context=context)
+                finished_product_to_produce_qty = (subproduct_factor * this_order.product_qty) - finished_product_produced_qty
+
+                if finished_product_to_produce_qty < production_qty:
+                    raise osv.except_osv('Warning!', 'You are attempting to produce more than the scheduled qty of finished product on this order.')
+
+                if finished_product_to_produce_qty > 0:
+                    move_obj.action_consume(cr, uid, [move.id], (subproduct_factor * production_qty), context=context)
+
+        # Make sure all component stock moves now show all finished product moves
+        # in their move_history_ids
+        for consumed_move in this_order.move_lines2:
             new_parent_ids = []
-            parent_move_ids = [x.id for x in raw_product.move_history_ids]
-            for final_product in production.move_created_ids2:
-                if final_product.id not in parent_move_ids:
-                    new_parent_ids.append(final_product.id)
-            for new_parent_id in new_parent_ids:
-                stock_mov_obj.write(cr, uid, [raw_product.id], {'move_history_ids': [(4,new_parent_id)]})
+            parent_move_ids = [m.id for m in consumed_move.move_history_ids]
+            for finished_move in this_order.move_created_ids2:
+                if finished_move.id not in parent_move_ids:
+                    new_parent_ids.append(finished_move.id)
+            for move_id in new_parent_ids:
+                move_obj.write(cr, uid, [consumed_move.id], {'move_history_ids': [(4, move_id)]})
 
+        # Trigger workflow validation
         wf_service = netsvc.LocalService("workflow")
         wf_service.trg_validate(uid, 'mrp.production', production_id, 'button_produce_done', cr)
         return True
+
+    # def action_produce(self, cr, uid, production_id, production_qty, production_mode, context=None):
+    #     """ To produce final product based on production mode (consume/consume&produce).
+    #     If Production mode is consume, all stock move lines of raw materials will be done/consumed.
+    #     If Production mode is consume & produce, all stock move lines of raw materials will be done/consumed
+    #     and stock move lines of final product will be also done/produced.
+    #     @param production_id: the ID of mrp.production object
+    #     @param production_qty: specify qty to produce
+    #     @param production_mode: specify production mode (consume/consume&produce).
+    #     @return: True
+    #     """
+    #
+    #     """
+    #     production: this manufacturing order
+    #     production.product_lines: list of products scheduled to be consumed in this order
+    #     production.move_lines: list of component product moves to consume
+    #     production.move_lines2: list of component product moves already consumed
+    #     production.move_created_ids: list of finished product moves to produce
+    #     production.move_created_ids2: list of finished product moves already produced
+    #     consumed: dictionary of raw materials already consumed in this order by product_id
+    #     move_history_ids: a list of final product moves resulting from the consumed product move
+    #     produced_qty: quantity of finished product already produced
+    #     qty_avail: quantity of scheduled product still not consumed on this order
+    #     total_consume: total quantity of this component product which will have been consumed on this order after this run of action_consume
+    #     production_qty: quantity of finished product to be consumed on this run of action_produce
+    #     raw_product: sometimes a list of production.move_lines whose products match the current iterator of product_lines
+    #     raw_product: sometimes iteration of production.move_lines, product stock move to be consumed
+    #     """
+    #
+    #     stock_mov_obj = self.pool.get('stock.move')
+    #     production = self.browse(cr, uid, production_id, context=context)
+    #
+    #     produced_qty = 0
+    #     for produced_product in production.move_created_ids2:
+    #         if (produced_product.scrapped) or (produced_product.product_id.id <> production.product_id.id):
+    #             continue
+    #         produced_qty += produced_product.product_qty
+    #
+    #     if production_mode in ['consume','consume_produce']:
+    #         consumed_data = {}
+    #
+    #         # Calculate already consumed qtys
+    #         for consumed in production.move_lines2:
+    #             if consumed.scrapped:
+    #                 continue
+    #             if not consumed_data.get(consumed.product_id.id, False):
+    #                 consumed_data[consumed.product_id.id] = 0
+    #             consumed_data[consumed.product_id.id] += consumed.product_qty
+    #
+    #         # Find product qty to be consumed and consume it
+    #         for scheduled in production.product_lines:
+    #
+    #             # total qty of consumed product we need after this consumption
+    #             total_consume = ((production_qty + produced_qty) * scheduled.product_qty / production.product_qty)
+    #
+    #             # qty available for consume and produce
+    #             qty_avail = scheduled.product_qty - consumed_data.get(scheduled.product_id.id, 0.0)
+    #
+    #
+    #             if qty_avail <= 0.0:
+    #                 # there will be nothing to consume for this raw material
+    #                 continue
+    #
+    #             raw_product = [move for move in production.move_lines if move.product_id.id==scheduled.product_id.id]
+    #             if raw_product:
+    #                 # qtys we have to consume
+    #                 qty = total_consume - consumed_data.get(scheduled.product_id.id, 0.0)
+    #                 if float_compare(qty, qty_avail, precision_rounding=scheduled.product_id.uom_id.rounding) == 1:
+    #                     # if qtys we have to consume is more than qtys available to consume
+    #                     prod_name = scheduled.product_id.name_get()[0][1]
+    #                     raise osv.except_osv(_('Warning!'), _('You are going to consume total %s quantities of "%s".\nBut you can only consume up to total %s quantities.') % (qty, prod_name, qty_avail))
+    #                 if qty <= 0.0:
+    #                     # we already have more qtys consumed than we need
+    #                     continue
+    #
+    #                 consumed = 0
+    #                 rounding = raw_product[0].product_uom.rounding
+    #
+    #                 # sort the list by quantity, to consume smaller quantities first and avoid splitting if possible
+    #                 raw_product.sort(key=attrgetter('product_qty'))
+    #
+    #                 # search for exact quantity
+    #                 for consume_line in raw_product:
+    #                     if tools.float_compare(consume_line.product_qty, qty, precision_rounding=rounding) == 0:
+    #                         # consume this line
+    #                         consume_line.action_consume(qty, consume_line.location_id.id, context=context)
+    #                         consumed = qty
+    #                         break
+    #
+    #                 index = 0
+    #                 # consume the smallest quantity while we have not consumed enough
+    #                 while tools.float_compare(consumed, qty, precision_rounding=rounding) == -1 and index < len(raw_product):
+    #                     consume_line = raw_product[index]
+    #                     to_consume = min(consume_line.product_qty, qty - consumed)
+    #                     consume_line.action_consume(to_consume, consume_line.location_id.id, context=context)
+    #                     consumed += to_consume
+    #                     index += 1
+    #
+    #     if production_mode == 'consume_produce':
+    #         # To produce remaining qty of final product
+    #         #vals = {'state':'confirmed'}
+    #         #final_product_todo = [x.id for x in production.move_created_ids]
+    #         #stock_mov_obj.write(cr, uid, final_product_todo, vals)
+    #         #stock_mov_obj.action_confirm(cr, uid, final_product_todo, context)
+    #         produced_products = {}
+    #         for produced_product in production.move_created_ids2:
+    #             if produced_product.scrapped:
+    #                 continue
+    #             if not produced_products.get(produced_product.product_id.id, False):
+    #                 produced_products[produced_product.product_id.id] = 0
+    #             produced_products[produced_product.product_id.id] += produced_product.product_qty
+    #
+    #         for produce_product in production.move_created_ids:
+    #             produced_qty = produced_products.get(produce_product.product_id.id, 0)
+    #             subproduct_factor = self._get_subproduct_factor(cr, uid, production.id, produce_product.id, context=context)
+    #             rest_qty = (subproduct_factor * production.product_qty) - produced_qty
+    #
+    #             if rest_qty < production_qty:
+    #                 prod_name = produce_product.product_id.name_get()[0][1]
+    #                 raise osv.except_osv(_('Warning!'), _('You are going to produce total %s quantities of "%s".\nBut you can only produce up to total %s quantities.') % (production_qty, prod_name, rest_qty))
+    #             if rest_qty > 0 :
+    #                 stock_mov_obj.action_consume(cr, uid, [produce_product.id], (subproduct_factor * production_qty), context=context)
+    #
+    #     for raw_product in production.move_lines2:
+    #         new_parent_ids = []
+    #         parent_move_ids = [x.id for x in raw_product.move_history_ids]
+    #         for final_product in production.move_created_ids2:
+    #             if final_product.id not in parent_move_ids:
+    #                 new_parent_ids.append(final_product.id)
+    #         for new_parent_id in new_parent_ids:
+    #             stock_mov_obj.write(cr, uid, [raw_product.id], {'move_history_ids': [(4,new_parent_id)]})
+    #
+    #     wf_service = netsvc.LocalService("workflow")
+    #     wf_service.trg_validate(uid, 'mrp.production', production_id, 'button_produce_done', cr)
+    #     return True
 
     def _costs_generate(self, cr, uid, production):
         """ Calculates total costs at the end of the production.

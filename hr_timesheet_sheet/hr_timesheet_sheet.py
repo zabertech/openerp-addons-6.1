@@ -20,7 +20,7 @@
 ##############################################################################
 
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 
 from osv import fields, osv
@@ -122,6 +122,11 @@ class hr_timesheet_sheet(osv.osv):
                                                 uid,
                                                 datetime.now(), 
                                                 context=context)
+        # date_current is the currently displaying date, which may not be
+        # "today"; we want today when calculating attendance for today and user
+        # is signed in
+        date_today = str(date.today())
+
         res = {}
         for sheet_id in ids:
             sheet = self.browse(cr, uid, sheet_id, context=context)
@@ -143,7 +148,7 @@ class hr_timesheet_sheet(osv.osv):
                 # in a such case, we want to have the time to the end of the day
                 # for a past date, and the time to now for the current date
                 if total_attendance[day] < timedelta(0):
-                    if day == date_current:
+                    if day == date_today:
                         total_attendance[day] += timedelta(hours=now.hour,
                                                            minutes=now.minute,
                                                            seconds=now.second)

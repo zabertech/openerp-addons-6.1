@@ -126,22 +126,12 @@
                             <field name="total_difference_day" widget="float_time"/>
                             <field name="total_timesheet_day" widget="float_time"/>
                         </page>
-                        <page string="Summary">
-                            <field colspan="4" name="period_ids" nolabel="1">
-                                <tree colors="red:total_difference&lt;0.1;blue:total_difference&gt;=0.1" string="Period">
-                                    <field name="name"/>
-                                    <field name="total_attendance" widget="float_time"/>
-                                    <field name="total_timesheet" widget="float_time"/>
-                                    <field name="total_difference" widget="float_time"/>
-                                </tree>
-                            </field>
-                            <group colspan="4" col="6">
-                                <field name="total_attendance" widget="float_time"/>
-                                <field name="total_timesheet" widget="float_time"/>
-                                <field name="total_difference" widget="float_time"/>
-                            </group>
-                        </page>
                     </notebook>
+                    <group colspan="4" col="6" string="Pay-Period Summary">
+                        <field name="total_attendance" widget="float_time"/>
+                        <field name="total_timesheet" widget="float_time"/>
+                        <field name="total_difference" widget="float_time"/>
+                    </group>
                     <group col="6" colspan="4">
                         <field name="state" widget="statusbar" statusbar_visible="new,confirm,done"/>
                         <button name="button_confirm" states="draft" string="Submited to Manager" type="object" icon="terp-check"/>
@@ -355,7 +345,7 @@
             <field name="model">hr_timesheet_sheet.sheet.day</field>
             <field name="type">tree</field>
             <field name="arch" type="xml">
-                <tree colors="blue:total_difference&lt;0.1;red:total_difference&gt;=0.1" string="Period">
+                <tree colors="red:total_difference&lt;-0.1;blue:total_difference&gt;=0.1" string="Period">
                     <field name="name"/>
                     <field name="total_attendance" widget="float_time" sum="Total Attendances"/>
                     <field name="total_timesheet" widget="float_time" sum="Total Timesheet"/>
