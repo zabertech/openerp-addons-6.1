@@ -594,7 +594,7 @@ class account_voucher(osv.osv):
 
         total_credit = 0.0
         total_debit = 0.0
-        account_type = 'receivable'
+
         if ttype == 'payment':
             account_type = 'payable'
             total_debit = price or 0.0
@@ -603,7 +603,8 @@ class account_voucher(osv.osv):
             account_type = 'receivable'
 
         if not context.get('move_line_ids', False):
-            ids = move_line_pool.search(cr, uid, [('state','=','valid'), ('account_id.type', '=', account_type), ('reconcile_id', '=', False), ('partner_id', '=', partner_id)], context=context)
+# ticket#23            ids = move_line_pool.search(cr, uid, [('state','=','valid'), ('account_id.type', '=', account_type), ('reconcile_id', '=', False), ('partner_id', '=', partner_id)], context=context)
+            ids = move_line_pool.search(cr, uid, [('state','=','valid'), ('reconcile_id', '=', False), ('partner_id', '=', partner_id)], context=context)
         else:
             ids = context['move_line_ids']
         invoice_id = context.get('invoice_id', False)
@@ -615,7 +616,9 @@ class account_voucher(osv.osv):
         account_move_lines = move_line_pool.browse(cr, uid, ids, context=context)
 
         for line in account_move_lines:
-            if line.reconcile_partial_id and line.amount_residual_currency < 0:
+            # ticket#23 the following comparison was < 0, but that would fail to display
+            # partially used customer credits
+            if line.reconcile_partial_id and line.amount_residual_currency == 0:
                 # skip line that are totally used within partial reconcile
                 continue
             if invoice_id:
@@ -643,7 +646,9 @@ class account_voucher(osv.osv):
 
         #voucher line creation
         for line in account_move_lines:
-            if line.reconcile_partial_id and line.amount_residual_currency < 0:
+            # ticket#23 the following comparison was < 0, but that would fail to display
+            # partially used customer credits
+            if line.reconcile_partial_id and line.amount_residual_currency == 0:
                 # skip line that are totally used within partial reconcile
                 continue
             if line.currency_id and currency_id==line.currency_id.id:
@@ -682,9 +687,10 @@ class account_voucher(osv.osv):
             if rs['amount_unreconciled'] == rs['amount']:
                 rs['reconcile'] = True
 
-            if rs['type'] == 'cr':
+            # next four lines modified for ticket #23
+            if rs['type'] == 'cr' and rs['amount_unreconciled']:
                 default['value']['line_cr_ids'].append(rs)
-            else:
+            elif rs['type'] == 'dr' and rs['amount_unreconciled']:
                 default['value']['line_dr_ids'].append(rs)
 
             if ttype == 'payment' and len(default['value']['line_cr_ids']) > 0:
