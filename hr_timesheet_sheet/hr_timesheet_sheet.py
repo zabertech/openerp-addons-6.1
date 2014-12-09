@@ -118,14 +118,14 @@ class hr_timesheet_sheet(osv.osv):
         """
         context = context or {}
         attendance_obj = self.pool.get('hr.attendance')
-        now = fields.datetime.context_timestamp(cr, 
+        now = fields.datetime.context_timestamp(cr,
                                                 uid,
-                                                datetime.now(), 
+                                                datetime.now(),
                                                 context=context)
         # date_current is the currently displaying date, which may not be
         # "today"; we want today when calculating attendance for today and user
         # is signed in
-        date_today = str(date.today())
+        date_today = now.strftime("%Y-%m-%d")
 
         res = {}
         for sheet_id in ids:
