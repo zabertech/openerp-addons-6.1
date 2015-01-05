@@ -369,6 +369,19 @@ class account_move_line(osv.osv):
         cr.execute(sql, [tuple(ids)])
         return dict(cr.fetchall())
 
+    def _credit_debit(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for line_id in ids:
+            res[line_id] = False
+        cr.execute("""
+                      select    id, debit-credit
+                      from      account_move_line
+                      where     id in %s
+                   """, (tuple(ids),))
+        for line_id, credit_debit in cr.fetchall():
+            res[line_id] = credit_debit
+        return res
+
     def _invoice(self, cursor, user, ids, name, arg, context=None):
         invoice_obj = self.pool.get('account.invoice')
         res = {}
@@ -513,7 +526,8 @@ class account_move_line(osv.osv):
             type='many2one', relation='account.invoice', fnct_search=_invoice_search),
         'account_tax_id':fields.many2one('account.tax', 'Tax'),
         'analytic_account_id': fields.many2one('account.analytic.account', 'Analytic Account'),
-        'company_id': fields.related('account_id', 'company_id', type='many2one', relation='res.company', string='Company', store=True, readonly=True)
+        'company_id': fields.related('account_id', 'company_id', type='many2one', relation='res.company', string='Company', store=True, readonly=True),
+        'credit_debit': fields.function(_credit_debit,string='Debit-Credit'),
     }
 
     def _get_date(self, cr, uid, context=None):
@@ -1070,6 +1084,9 @@ class account_move_line(osv.osv):
             elif field == 'credit':
                 f.set('sum', _("Total credit"))
 
+            elif field == 'credit_debit':
+                f.set('sum', _("Total amount"))
+
             elif field == 'move_id':
                 f.set('required', 'False')
 
@@ -1102,6 +1119,7 @@ class account_move_line(osv.osv):
             if field in ('amount_currency', 'currency_id'):
                 f.set('on_change', 'onchange_currency(account_id, amount_currency, currency_id, date, journal_id)')
                 f.set('attrs', "{'readonly': [('state', '=', 'valid')]}")
+                f.set('sum', _("Total Amount Currency"))
 
             if field in widths:
                 f.set('width', str(widths[field]))
