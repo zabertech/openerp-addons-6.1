@@ -2462,7 +2462,7 @@ class stock_move(osv.osv):
                 quantity = move.product_qty
 
             uos_qty = quantity / move_qty * move.product_uos_qty
-            if quantity_rest > 0:
+            if quantity_rest > 1e-10: # quantity_rest may be a float so comparing with zero is unreliable.
                 default_val = {
                     'product_qty': quantity,
                     'product_uos_qty': uos_qty,
