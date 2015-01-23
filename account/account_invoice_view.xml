@@ -182,7 +182,7 @@
                                     <field invisible="True" name="uos_id"/>
                                 </tree>
                             </field>
-                            <group col="1" colspan="3">
+                            <group col="1" colspan="2">
                                 <field name="tax_line" nolabel="1">
                                     <tree editable="bottom" string="Taxes">
                                         <field name="name"/>
@@ -197,7 +197,7 @@
                                     </tree>
                                 </field>
                             </group>
-                            <group col="4" colspan="1">
+                            <group col="4" colspan="2">
                                 <button colspan="2" name="button_reset_taxes" states="draft" string="Compute Taxes" type="object" icon="terp-stock_format-scientific" help="This action will erase taxes"/>
                                 <field name="amount_untaxed"/>
                                 <label string="" colspan="2"/>
