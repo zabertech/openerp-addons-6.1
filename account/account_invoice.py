@@ -483,7 +483,8 @@ class account_invoice(osv.osv):
             # set due date
             to_update = self.onchange_payment_term_date_invoice(
                     cr, uid, ids, partner_payment_term, date_invoice)
-            result['value'].update(to_update['value'])
+            if 'value' in to_update:
+                result['value'].update(to_update['value'])
 
         if not fiscal_position:
             result['value']['fiscal_position'] = p.property_account_position and p.property_account_position.id or False
