@@ -405,76 +405,95 @@ class account_invoice(osv.osv):
         return True
 
     def onchange_partner_id(self, cr, uid, ids, type, partner_id,\
-            date_invoice=False, payment_term=False, partner_bank_id=False, company_id=False):
-        invoice_addr_id = False
-        contact_addr_id = False
-        partner_payment_term = False
+            date_invoice=False, payment_term=False, partner_bank_id=False,
+            company_id=False, address_contact_id=False,
+            address_invoice_id=False, fiscal_position=False):
+
+        if not partner_id:
+            return {'value': {'date_invoice': False,
+                              'payment_term': False,
+                              'partner_bank_id': False,
+                              'company_id': False,
+                              'fiscal_position': False,
+                              'date_due': False,
+                              'address_contact_id': False,
+                              'address_invoice_id': False,
+                              'account_id': False,}}
+
         acc_id = False
         bank_id = False
-        fiscal_position = False
 
         opt = [('uid', str(uid))]
-        if partner_id:
+        opt.insert(0, ('id', partner_id))
+        res = self.pool.get('res.partner').address_get(cr, uid, [partner_id], ['contact', 'invoice'])
+        p = self.pool.get('res.partner').browse(cr, uid, partner_id)
+        if company_id:
+            if p.property_account_receivable.company_id.id != company_id and p.property_account_payable.company_id.id != company_id:
+                property_obj = self.pool.get('ir.property')
+                rec_pro_id = property_obj.search(cr,uid,[('name','=','property_account_receivable'),('res_id','=','res.partner,'+str(partner_id)+''),('company_id','=',company_id)])
+                pay_pro_id = property_obj.search(cr,uid,[('name','=','property_account_payable'),('res_id','=','res.partner,'+str(partner_id)+''),('company_id','=',company_id)])
+                if not rec_pro_id:
+                    rec_pro_id = property_obj.search(cr,uid,[('name','=','property_account_receivable'),('company_id','=',company_id)])
+                if not pay_pro_id:
+                    pay_pro_id = property_obj.search(cr,uid,[('name','=','property_account_payable'),('company_id','=',company_id)])
+                rec_line_data = property_obj.read(cr,uid,rec_pro_id,['name','value_reference','res_id'])
+                pay_line_data = property_obj.read(cr,uid,pay_pro_id,['name','value_reference','res_id'])
+                rec_res_id = rec_line_data and rec_line_data[0].get('value_reference',False) and int(rec_line_data[0]['value_reference'].split(',')[1]) or False
+                pay_res_id = pay_line_data and pay_line_data[0].get('value_reference',False) and int(pay_line_data[0]['value_reference'].split(',')[1]) or False
+                if not rec_res_id and not pay_res_id:
+                    raise osv.except_osv(_('Configuration Error !'),
+                        _('Can not find a chart of accounts for this company, you should create one.'))
+                account_obj = self.pool.get('account.account')
+                rec_obj_acc = account_obj.browse(cr, uid, [rec_res_id])
+                pay_obj_acc = account_obj.browse(cr, uid, [pay_res_id])
+                p.property_account_receivable = rec_obj_acc[0]
+                p.property_account_payable = pay_obj_acc[0]
 
-            opt.insert(0, ('id', partner_id))
-            res = self.pool.get('res.partner').address_get(cr, uid, [partner_id], ['contact', 'invoice'])
-            contact_addr_id = res['contact']
-            invoice_addr_id = res['invoice']
-            p = self.pool.get('res.partner').browse(cr, uid, partner_id)
-            if company_id:
-                if p.property_account_receivable.company_id.id != company_id and p.property_account_payable.company_id.id != company_id:
-                    property_obj = self.pool.get('ir.property')
-                    rec_pro_id = property_obj.search(cr,uid,[('name','=','property_account_receivable'),('res_id','=','res.partner,'+str(partner_id)+''),('company_id','=',company_id)])
-                    pay_pro_id = property_obj.search(cr,uid,[('name','=','property_account_payable'),('res_id','=','res.partner,'+str(partner_id)+''),('company_id','=',company_id)])
-                    if not rec_pro_id:
-                        rec_pro_id = property_obj.search(cr,uid,[('name','=','property_account_receivable'),('company_id','=',company_id)])
-                    if not pay_pro_id:
-                        pay_pro_id = property_obj.search(cr,uid,[('name','=','property_account_payable'),('company_id','=',company_id)])
-                    rec_line_data = property_obj.read(cr,uid,rec_pro_id,['name','value_reference','res_id'])
-                    pay_line_data = property_obj.read(cr,uid,pay_pro_id,['name','value_reference','res_id'])
-                    rec_res_id = rec_line_data and rec_line_data[0].get('value_reference',False) and int(rec_line_data[0]['value_reference'].split(',')[1]) or False
-                    pay_res_id = pay_line_data and pay_line_data[0].get('value_reference',False) and int(pay_line_data[0]['value_reference'].split(',')[1]) or False
-                    if not rec_res_id and not pay_res_id:
-                        raise osv.except_osv(_('Configuration Error !'),
-                            _('Can not find a chart of accounts for this company, you should create one.'))
-                    account_obj = self.pool.get('account.account')
-                    rec_obj_acc = account_obj.browse(cr, uid, [rec_res_id])
-                    pay_obj_acc = account_obj.browse(cr, uid, [pay_res_id])
-                    p.property_account_receivable = rec_obj_acc[0]
-                    p.property_account_payable = pay_obj_acc[0]
-
-            if type in ('out_invoice', 'out_refund'):
-                acc_id = p.property_account_receivable.id
-            else:
-                acc_id = p.property_account_payable.id
-            fiscal_position = p.property_account_position and p.property_account_position.id or False
-            partner_payment_term = p.property_payment_term and p.property_payment_term.id or False
-            if p.bank_ids:
-                bank_id = p.bank_ids[0].id
+        if type in ('out_invoice', 'out_refund'):
+            acc_id = p.property_account_receivable.id
+        else:
+            acc_id = p.property_account_payable.id
+        if p.bank_ids:
+            bank_id = p.bank_ids[0].id
 
         result = {'value': {
-            'address_contact_id': contact_addr_id,
-            'address_invoice_id': invoice_addr_id,
             'account_id': acc_id,
-            'payment_term': partner_payment_term,
-            'fiscal_position': fiscal_position
             }
         }
 
         if type in ('in_invoice', 'in_refund'):
             result['value']['partner_bank_id'] = bank_id
 
-        if payment_term != partner_payment_term:
-            if partner_payment_term:
-                to_update = self.onchange_payment_term_date_invoice(
-                    cr, uid, ids, partner_payment_term, date_invoice)
-                result['value'].update(to_update['value'])
-            else:
-                result['value']['date_due'] = False
+        # bug 1031: only set these fields if they aren't already filled out:
+        # fiscal position, contact address, invoice address, payment term (and
+        # due date)
+        # note: due date is calculated when an invoice is validated, there's
+        # nothing at time of writing that refreshes it if the payment term is
+        # changed in the form
+        if not address_invoice_id:
+            result['value']['address_invoice_id'] = res['invoice']
 
-        if partner_bank_id != bank_id:
+        if not address_contact_id:
+            result['value']['address_contact_id'] = res['contact']
+
+        if not payment_term:
+            # set payment term
+            partner_payment_term = p.property_payment_term and p.property_payment_term.id or False
+            result['value']['payment_term'] = partner_payment_term
+            # set due date
+            to_update = self.onchange_payment_term_date_invoice(
+                    cr, uid, ids, partner_payment_term, date_invoice)
+            if 'value' in to_update:
+                result['value'].update(to_update['value'])
+
+        if not fiscal_position:
+            result['value']['fiscal_position'] = p.property_account_position and p.property_account_position.id or False
+
+        # at time of writing, this doesn't do anything
+        if not partner_bank_id and partner_bank_id != bank_id:
             to_update = self.onchange_partner_bank(cr, uid, ids, bank_id)
             result['value'].update(to_update['value'])
+
         return result
 
     def onchange_journal_id(self, cr, uid, ids, journal_id=False, context=None):

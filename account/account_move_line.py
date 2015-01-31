@@ -1054,7 +1054,9 @@ class account_move_line(osv.osv):
                     fields.get(field.field).append(journal.id)
                     common_fields[field.field] = common_fields[field.field] + 1
         fld.append(('period_id', 3))
-        fld.append(('journal_id', 10))
+        # #44: adjust the sequence of journal column so other columns could be
+        # ordered between period and journal
+        fld.append(('journal_id', 50))
         flds.append('period_id')
         flds.append('journal_id')
         fields['period_id'] = all_journal
@@ -1126,8 +1128,9 @@ class account_move_line(osv.osv):
 
             if field in ('journal_id',):
                 f.set("invisible", "context.get('journal_id', False)")
-            elif field in ('period_id',):
-                f.set("invisible", "context.get('period_id', False)")
+# #44: when filtering on period, do not hide the period column
+#            elif field in ('period_id',):
+#                f.set("invisible", "context.get('period_id', False)")
 
             orm.setup_modifiers(f, fields_get[field], context=context,
                                 in_tree_view=True)
