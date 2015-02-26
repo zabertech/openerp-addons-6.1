@@ -1081,13 +1081,13 @@ class account_move_line(osv.osv):
             f = etree.SubElement(document, 'field', name=field)
 
             if field == 'debit':
-                f.set('sum', _("Total debit"))
+                f.set('sum', _("Total Debit"))
 
             elif field == 'credit':
-                f.set('sum', _("Total credit"))
+                f.set('sum', _("Total Credit"))
 
             elif field == 'credit_debit':
-                f.set('sum', _("Total amount"))
+                f.set('sum', _("Total Amount"))
 
             elif field == 'move_id':
                 f.set('required', 'False')
