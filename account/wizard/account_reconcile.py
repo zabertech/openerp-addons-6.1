@@ -167,6 +167,12 @@ class account_move_line_reconcile_writeoff(osv.osv_memory):
             period_id = ids[0]
 
         context.update({'stop_reconcile': True})
+
+        # 1121 record currency of the transaction in the write off journal entry
+        move_line_record = account_move_line_obj.browse(cr, uid, context['active_id'], context=context)
+        if move_line_record and 'currency_id' in move_line_record:
+            context['currency_id'] = move_line_record['currency_id'].id
+
         account_move_line_obj.reconcile(cr, uid, context['active_ids'], 'manual', account_id,
                 period_id, journal_id, context=context)
         return {'type': 'ir.actions.act_window_close'}
