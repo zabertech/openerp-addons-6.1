@@ -2155,12 +2155,17 @@ class stock_move(osv.osv):
         reference_currency_id = move.company_id.currency_id.id
 
         default_uom = move.product_id.uom_id.id
+
         qty = product_uom_obj._compute_qty(cr, uid, move.product_uom.id, move.product_qty, default_uom)
 
         # if product is set to average price and a specific value was entered in the picking wizard,
         # we use it
         if move.product_id.cost_method == 'average' and move.price_unit:
-            reference_amount = qty * move.price_unit
+
+            # Changed for issue http://bugs/issues/1036 by Colin Ligertwood <colin@zaber.com>
+            # this was previously multiplied by qty which would apply the unit factor twice
+            reference_amount = move.product_qty * move.price_unit
+
             reference_currency_id = move.price_currency_id.id or reference_currency_id
 
         # Otherwise we default to the company's valuation price type, considering that the values of the
