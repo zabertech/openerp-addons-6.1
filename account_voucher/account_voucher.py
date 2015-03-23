@@ -1161,7 +1161,13 @@ class account_voucher(osv.osv):
             diff = line_total
             account_id = False
             write_off_name = ''
-            if voucher_brw.payment_option == 'with_writeoff':
+            # Colin Ligertwood <colin@zaber.com> 2015-03-05
+            # modified to resolve issue #924. If difference amount on voucher
+            # is zero(ish) then this is a rounding error being written off and
+            # should go to the voucher's writeoff account, and not the partner's
+            # payable/receivable account
+            if voucher_brw.payment_option == 'with_writeoff' \
+                    or voucher_brw.writeoff_amount <= 0.001:
                 account_id = voucher_brw.writeoff_acc_id.id
                 write_off_name = voucher_brw.comment
             elif voucher_brw.type in ('sale', 'receipt'):
