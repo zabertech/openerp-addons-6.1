@@ -80,6 +80,14 @@ class fetchmail_server(osv.osv):
         'message_ids': fields.one2many('mail.message', 'fetchmail_server_id', 'Messages', readonly=True),
         'configuration' : fields.text('Configuration'),
         'script' : fields.char('Script', readonly=True, size=64),
+
+        'allowed_in_sandbox': fields.boolean(
+                                  'Allow on Sandbox',
+                                  help='For this account to be used on a sandbox server, '
+                                  'this must checked off. Otherwise, to prevent sandboxes '
+                                  'from downloading live emails (and causing missing data) '
+                                  'we prevent sandboxes from checking this account'
+                              ),
     }
     _defaults = {
         'state': "draft",
@@ -172,12 +180,28 @@ openerp_mailgate.py -u %(uid)d -p PASSWORD -o %(model)s -d %(dbname)s --host=HOS
 
     def fetch_mail(self, cr, uid, ids, context=None):
         """WARNING: meant for cron usage only - will commit() after each email!"""
+
+
         if context is None:
             context = {}
         mail_thread = self.pool.get('mail.thread')
         action_pool = self.pool.get('ir.actions.server')
         for server in self.browse(cr, uid, ids, context=context):
-            logger.info('start checking for new emails on %s server %s', server.type, server.name)
+
+            """
+            To prevent any sandboxes from fetching emails from live email accounts, 
+            we the fetchmail service from executing unless the "Allow Debug" field
+            has been set.
+
+            http://bugs.izaber.com/issues/1142
+            """
+            if server.allowed_in_sandbox or cr.dbname == 'live':
+                logger.info('start checking for new emails on %s server %s', server.type, server.name)
+            else:
+                logger.info('IGNORING new emails on %s server %s as this is not the live database. '
+                            'To allow, ensure "Allow on Sandbox" is checked.', server.type, server.name)
+                continue
+
             context.update({'fetchmail_server_id': server.id, 'server_type': server.type})
             count = 0
             imap_server = False

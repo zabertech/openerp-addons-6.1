@@ -15,6 +15,7 @@
                     <field name="date"/>
                     <field name="message_ids" string="# of emails"/>
                     <field name="state"/>
+                    <field name="allowed_in_sandbox"/>
                 </tree>
             </field>
         </record>
@@ -61,6 +62,7 @@
                                 <field name="attach"/>
                                 <field name="original"/>
                                 <field name="active" select="1"/>
+                                <field name="allowed_in_sandbox" select="1"/>
                             </group>
                         </page>
                     </notebook>
