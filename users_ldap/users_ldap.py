@@ -136,13 +136,19 @@ class CompanyLDAP(osv.osv):
 
         results = []
         logger = logging.getLogger('orm.ldap')
+        # Tweaks to allow for broad DN search
+        # http://bugs.izaber.com/issues/1166
         try:
             conn = self.connect(conf)
             conn.simple_bind_s(conf['ldap_binddn'] or '',
                                conf['ldap_password'] or '')
-            results = conn.search_st(conf['ldap_base'], ldap.SCOPE_SUBTREE,
-                                     filter, retrieve_attributes, timeout=60)
-            conn.unbind()
+            result_id = conn.search(conf['ldap_base'], ldap.SCOPE_SUBTREE, filter, retrieve_attributes)
+            while 1:
+                result_type, result_data = conn.result(result_id, 0)
+                if result_type != ldap.RES_SEARCH_ENTRY:
+                    continue
+                results = result_data
+                break
         except ldap.INVALID_CREDENTIALS:
             logger.error('LDAP bind failed.')
         except ldap.LDAPError, e:
