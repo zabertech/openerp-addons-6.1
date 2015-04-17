@@ -25,7 +25,6 @@
             res_model="stock.invoice.onshipping"
             src_model="stock.picking"
             key2="client_action_multi"
-            multi="True"
             view_mode="form"
             view_type="form"
             target="new"
