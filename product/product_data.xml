@@ -4,10 +4,6 @@
         <!--
 	Resource: product.uom.categ
 	-->
-        <record id="cat0" model="product.category">
-            <field name="name">All products</field>
-        </record>
-
         <record id="product_uom_categ_unit" model="product.uom.categ">
             <field name="name">Unit</field>
         </record>
@@ -169,18 +165,5 @@ parameter) will see those record just disappear.
             <field name="digits" eval="3"/>
         </record>        
 
-        <!--
-        Product
-        -->
-        <record id="product_consultant" model="product.product">
-            <field name="list_price">75.0</field>
-            <field name="standard_price">30.0</field>
-            <field name="uom_id" ref="product.uom_hour"/>
-            <field name="uom_po_id" ref="product.uom_hour"/>
-            <field name="name">Service on Timesheet</field>
-            <field name="categ_id" ref="product.cat0"/>
-            <field name="type">service</field>
-            <field eval="False" name="purchase_ok"/>
-        </record>
     </data>
 </openerp>

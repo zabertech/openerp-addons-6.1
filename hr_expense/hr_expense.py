@@ -227,23 +227,6 @@ class hr_expense_expense(osv.osv):
 
 hr_expense_expense()
 
-class product_product(osv.osv):
-    _inherit = "product.product"
-    _columns = {
-        'hr_expense_ok': fields.boolean('Can Constitute an Expense', help="Determines if the product can be visible in the list of product within a selection from an HR expense sheet line."),
-    }
-
-    def on_change_hr_expense_ok(self, cr, uid, id, hr_expense_ok):
-
-        if not hr_expense_ok:
-            return {}
-        data_obj = self.pool.get('ir.model.data')
-        cat_id = data_obj._get_id(cr, uid, 'hr_expense', 'cat_expense')
-        categ_id = data_obj.browse(cr, uid, cat_id).res_id
-        res = {'value' : {'type':'service','procure_method':'make_to_stock','supply_method':'buy','purchase_ok':True,'sale_ok' :False,'categ_id':categ_id }}
-        return res
-
-product_product()
 
 class hr_expense_line(osv.osv):
     _name = "hr.expense.line"
@@ -263,7 +246,7 @@ class hr_expense_line(osv.osv):
         'total_amount': fields.function(_amount, string='Total', digits_compute=dp.get_precision('Account')),
         'unit_amount': fields.float('Unit Price', digits_compute=dp.get_precision('Account')),
         'unit_quantity': fields.float('Quantities' ),
-        'product_id': fields.many2one('product.product', 'Product', domain=[('hr_expense_ok','=',True)]),
+        'product_id': fields.many2one('product.product', 'Product'),
         'uom_id': fields.many2one('product.uom', 'UoM'),
         'description': fields.text('Description'),
         'analytic_account': fields.many2one('account.analytic.account','Analytic account'),

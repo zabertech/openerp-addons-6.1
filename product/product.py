@@ -341,13 +341,7 @@ class product_template(osv.osv):
             context = {}
         if 'categ_id' in context and context['categ_id']:
             return context['categ_id']
-        md = self.pool.get('ir.model.data')
-        res = False
-        try:
-            res = md.get_object_reference(cr, uid, 'product', 'cat0')[1]
-        except ValueError:
-            res = False
-        return res
+        return False
 
     def onchange_uom(self, cursor, user, ids, uom_id,uom_po_id):
         if uom_id:
