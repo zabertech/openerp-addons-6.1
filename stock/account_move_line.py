@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (C) 2015 Zaber Technologies Inc. (<http://zaber.com>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,12 +19,19 @@
 #
 ##############################################################################
 
-from stock import *
-import partner
-import product
-import report
-import wizard
+from osv import fields,osv,orm
 
-import account_move_line
+# Link Account Moves and Stock Moves: http://bugs.izaber.com/issues/1157
+class account_move_line(osv.osv):
+    _inherit = "account.move.line"
+    _columns = {
+        'stock_move_ids': fields.many2many(
+                              'stock.move', 
+                              'stock_account_rel', 
+                              'account_move_line_id', 
+                              'stock_move_id', 
+                              'Stock Moves' ),
+    }
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+
+

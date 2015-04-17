@@ -1461,6 +1461,11 @@
                               string="Split" type="action" icon="terp-stock_effects-object-colorize" colspan="1"/>
                     </group>
 
+                    <group colspan="2" col="4" groups="base.group_extended">
+                       <separator string="Account Move Lines" colspan="4" groups="base.group_extended"/>
+                       <field name="account_move_line_ids" nolabel="1" />
+                    </group>
+
                     <separator colspan="4"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,assigned,done" statusbar_colors='{"waiting":"blue","confirmed":"blue"}'/>
                     <group col="4" colspan="2">

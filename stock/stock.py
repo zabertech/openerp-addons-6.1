@@ -1614,6 +1614,15 @@ class stock_move(osv.osv):
 
         # used for colors in tree views:
         'scrapped': fields.related('location_dest_id','scrap_location',type='boolean',relation='stock.location',string='Scrapped', readonly=True),
+
+        # Link Account Moves and Stock Moves: http://bugs.izaber.com/issues/1157
+        'account_move_line_ids': fields.many2many(
+                                    'account.move.line', 
+                                    'stock_account_rel', 
+                                    'stock_move_id', 
+                                    'account_move_line_id', 
+                                    'Account Moves' ),
+
     }
     def _check_location(self, cr, uid, ids, context=None):
         for record in self.browse(cr, uid, ids, context=context):
@@ -2283,6 +2292,7 @@ class stock_move(osv.osv):
                     'partner_id': partner_id,
                     'debit': reference_amount,
                     'account_id': dest_account_id,
+                    'stock_move_ids': [(6,0,[move.id])],
         }
         credit_line_vals = {
                     'name': move.name,
@@ -2293,6 +2303,7 @@ class stock_move(osv.osv):
                     'partner_id': partner_id,
                     'credit': reference_amount,
                     'account_id': src_account_id,
+                    'stock_move_ids': [(6,0,[move.id])],
         }
 
         # if we are posting to accounts in a different currency, provide correct values in both currencies correctly
