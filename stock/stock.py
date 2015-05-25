@@ -2218,11 +2218,12 @@ class stock_move(osv.osv):
                 account_moves += [(journal_id, self._create_account_move_line(cr, uid, move, acc_src, acc_valuation, reference_amount, reference_currency_id, context))]
             move_obj = self.pool.get('account.move')
             for j_id, move_lines in account_moves:
-                move_obj.create(cr, uid,
+                move_id = move_obj.create(cr, uid,
                         {
                          'journal_id': j_id,
                          'line_id': move_lines,
                          'ref': move.picking_id and move.picking_id.name or False})
+                move_obj.post(cr, uid, [move_id], context)
 
 
     def action_done(self, cr, uid, ids, context=None):
