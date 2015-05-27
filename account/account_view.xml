@@ -1234,10 +1234,10 @@
                         <separator orientation="vertical"/>
                         <field name="move_id" string="Number (Move)"/>
                         <field name="date"/>
-                        <field name="account_id"/>
                         <field name="partner_id">
                             <filter help="Next Partner Entries to reconcile" name="next_partner" context="{'next_partner_only': 1}" icon="terp-gtk-jump-to-ltr" domain="[('account_id.reconcile','=',True),('reconcile_id','=',False)]"/>
                         </field>
+                        <field name="account_id"/>
                     </group>
                     <newline/>
                     <group>
