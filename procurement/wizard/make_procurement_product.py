@@ -45,6 +45,13 @@ class make_procurement(osv.osv_memory):
         'uom_id': fields.many2one('product.uom', 'Unit of Measure', required=True),
         'warehouse_id': fields.many2one('stock.warehouse', 'Warehouse', required=True),
         'date_planned': fields.date('Planned Date', required=True),
+        # 1209: display the purchase warning when a procurement request is made
+        'purchase_line_warn': fields.related('product_id',
+        'purchase_line_warn', type='selection', relation='product.product',
+        string='Warning Level', readonly=True),
+        'purchase_line_warn_msg': fields.related('product_id',
+        'purchase_line_warn_msg', type='text', relation='product.product',
+        string='Warning Message', readonly=True),
     }
 
     _defaults = {
