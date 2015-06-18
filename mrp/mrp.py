@@ -708,7 +708,7 @@ class mrp_production(osv.osv):
         if production_mode in ['consume', 'consume_produce']:
 
             # Make a list of all component product_ids scheduled for consumption
-            component_products = [p.product_id.id for p in this_order.product_lines]
+            component_products = set([p.product_id.id for p in this_order.product_lines])
 
             # Determine how much of the component products scheduled to be
             # consumed in this order have already been consumed in previous
