@@ -196,6 +196,39 @@ class stock_return_picking(osv.osv_memory):
         if not returned_lines:
             raise osv.except_osv(_('Warning !'), _("Please specify at least one non-zero quantity!"))
 
+        # #1238 create a customer case entry to immediately notify accounting
+        # of a returned product (on incoming shipments only)
+        if pick.type=='in':
+            helpdesk_obj = self.pool.get('crm.helpdesk')
+            crm_subject = u"Return Products Alert"
+            ZABER_PARTNER_ID = 1
+            ZABER_DEFAULT_CONTACT_ID = 9230 # Aki, for fun
+
+            # search for customer case by subject
+            case_id = helpdesk_obj.search(cr, uid, [('name', '=', subject),
+                                                    ('partner_id','=',self.ZABER_PARTNER_ID)]);
+            # if the case doesn't exist, create it
+            if case_id:
+                case_id = case_id[0]
+            else:
+                email_from = self.pool.get('res.partner.address').browse(cr, uid,
+                        [ZABER_DEFAULT_CONTACT_ID])[0].email
+                case_id = helpdesk_obj.create(cr, uid,
+                                              {'name': crm_subject,
+                                               'email_from': email_from,
+                                               'partner_id': ZABER_PARTNER_ID,
+                                               'state': 'done',
+                                               'description': crm_subject,
+                                               'partner_address_id': ZABER_DEFAULT_CONTACT_ID,
+                                              })
+            # Fetch the case obj so we can get its particulars
+            case = helpdesk_obj.browse(cr, uid, case_id, context=context)
+            # START HERE
+
+        #
+        # end customer case entry
+        #
+
         if set_invoice_state_to_none:
             pick_obj.write(cr, uid, [pick.id], {'invoice_state':'none'})
         wf_service.trg_validate(uid, 'stock.picking', new_picking, 'button_confirm', cr)
