@@ -11,6 +11,11 @@
             <field name="arch" type="xml">
                 <form string="Procurement Request">
                     <label string="This wizard will plan the procurement for this product. This procurement may generate task, production orders or purchase orders." colspan="4"/>
+		    <!-- #1235 display purchase warning -->
+		    <field name="purchase_line_warn" invisible="1"/>
+                    <field name="purchase_line_warn_msg"
+		           colspan="4"
+			   attrs="{'invisible': [('purchase_line_warn', '=', 'no-message')]}" />
                     <field name="product_id" on_change="onchange_product_id(product_id)"/>
                     <field name="qty"/>
                     <field name="uom_id"/>
@@ -21,8 +26,10 @@
                     <group col="2" colspan="4">
                         <button icon='gtk-cancel' special="cancel"
                             string="Cancel" />
+			<!-- #1235 - add attrs to disable button if warning level is 'block' -->
                         <button name="make_procurement" string="Ask New Products"
-                            colspan="1" type="object" icon="gtk-ok" />
+                            colspan="1" type="object" icon="gtk-ok"
+                            attrs="{'readonly': [('purchase_line_warn', '=', 'block')]}" />
                     </group>
                 </form>
             </field>

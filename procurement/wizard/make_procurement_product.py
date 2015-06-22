@@ -45,6 +45,22 @@ class make_procurement(osv.osv_memory):
         'uom_id': fields.many2one('product.uom', 'Unit of Measure', required=True),
         'warehouse_id': fields.many2one('stock.warehouse', 'Warehouse', required=True),
         'date_planned': fields.date('Planned Date', required=True),
+        # 1235: display the purchase warning when a procurement request is made
+        # if it is a blocking warning, also disable the "Ask New Products"
+        # button (this is set in the corresponding view)
+        'purchase_line_warn': fields.related('product_id',
+                                             'purchase_line_warn',
+                                             type='selection',
+                                             selection=[('no-message','no-message'),
+                                                        ('warning','warning'),
+                                                        ('block','block')],
+                                             relation='product.product',
+                                             string='Warning Level', readonly=True),
+        'purchase_line_warn_msg': fields.related('product_id',
+                                                 'purchase_line_warn_msg',
+                                                 type='text',
+                                                 relation='product.product',
+                                                 string='Warning Message', readonly=True),
     }
 
     _defaults = {
@@ -113,9 +129,14 @@ class make_procurement(osv.osv_memory):
         record_id = context and context.get('active_id', False) or False
 
         res = super(make_procurement, self).default_get(cr, uid, fields, context=context)
-        product_id = self.pool.get('product.product').browse(cr, uid, record_id, context=context).id
+        product = self.pool.get('product.product').browse(cr, uid, record_id, context=context)
         if 'product_id' in fields:
-            res.update({'product_id':product_id})
+            res.update({'product_id':product.id})
+        # 1235 - need to populate purchase_line_warn* fields
+        if 'purchase_line_warn' in fields:
+            res.update({'purchase_line_warn':product.purchase_line_warn})
+        if 'purchase_line_warn_msg' in fields:
+            res.update({'purchase_line_warn_msg':product.purchase_line_warn_msg})
         return res
 
 make_procurement()
