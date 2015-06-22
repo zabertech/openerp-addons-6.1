@@ -1569,7 +1569,10 @@ class account_move(osv.osv):
             # Unlink old analytic lines on move_lines
             for obj_line in move.line_id:
                 # Only unlink analytic lines if they were generated
-                if obj_line.analytic_account_id:
+                # bug 1209: add "or obj_line.analytic_lines" to handle case where
+                # analytic is removed from a line: in this case we want to
+                # delete the corresponding analytic journal item
+                if obj_line.analytic_account_id or obj_line.analytic_lines:
                     for obj in obj_line.analytic_lines:
                         obj_analytic_line.unlink(cr,uid,obj.id)
 
