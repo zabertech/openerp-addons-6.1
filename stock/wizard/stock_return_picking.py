@@ -133,7 +133,7 @@ class stock_return_picking(osv.osv_memory):
         return return_history
 
     def create_returns(self, cr, uid, ids, context=None):
-        """ 
+        """
          Creates return picking.
          @param self: The object pointer.
          @param cr: A database cursor
@@ -143,7 +143,7 @@ class stock_return_picking(osv.osv_memory):
          @return: A dictionary which of fields with values.
         """
         if context is None:
-            context = {} 
+            context = {}
         record_id = context and context.get('active_id', False) or False
         move_obj = self.pool.get('stock.move')
         pick_obj = self.pool.get('stock.picking')
@@ -156,7 +156,7 @@ class stock_return_picking(osv.osv_memory):
         date_cur = time.strftime('%Y-%m-%d %H:%M:%S')
         set_invoice_state_to_none = True
         returned_lines = 0
-        
+
 #        Create new picking for returned products
         if pick.type=='out':
             new_type = 'in'
@@ -169,7 +169,7 @@ class stock_return_picking(osv.osv_memory):
         new_picking = pick_obj.copy(cr, uid, pick.id, {'name':'%s-%s-return' % (new_pick_name, pick.name),
                 'move_lines':[], 'state':'draft', 'type':new_type,
                 'date':date_cur, 'invoice_state':data['invoice_state'],})
-        
+
         val_id = data['product_return_moves']
         for v in val_id:
             data_get = data_obj.browse(cr, uid, v, context=context)
@@ -196,34 +196,82 @@ class stock_return_picking(osv.osv_memory):
         if not returned_lines:
             raise osv.except_osv(_('Warning !'), _("Please specify at least one non-zero quantity!"))
 
+        #
         # #1238 create a customer case entry to immediately notify accounting
         # of a returned product (on incoming shipments only)
         if pick.type=='in':
             helpdesk_obj = self.pool.get('crm.helpdesk')
-            crm_subject = u"Return Products Alert"
-            ZABER_PARTNER_ID = 1
-            ZABER_DEFAULT_CONTACT_ID = 9230 # Aki, for fun
+            section_obj = self.pool.get('crm.case.section')
+            employee_obj = self.pool.get('hr.employee')
+            sales_team_code = 'acct'
+
+            # Select a sales team to assign this case to
+            try:
+                section_id = section_obj.search(cr, uid, [('code', '=', sales_team_code)])[0]
+            except IndexError:
+                raise osv.except_osv('Error', 'You must configure a sales team with the code "acct" in order to notify accounting of returned products.')
+            section = section_obj.browse(cr, uid, section_id, context=None)
+            subject = u"Return Products to Supplier Alert"
+
+            # get address id
+            employee_id = employee_obj.search(cr, uid, [('user_id', '=', section.user_id.id)])[0]
+            employee = employee_obj.browse(cr, uid, employee_id)
+            partner_address_id = employee.address_id.id
+            partner_id = 1 # Zaber
 
             # search for customer case by subject
             case_id = helpdesk_obj.search(cr, uid, [('name', '=', subject),
-                                                    ('partner_id','=',self.ZABER_PARTNER_ID)]);
+                                                    ('partner_id', '=', partner_id)]);
             # if the case doesn't exist, create it
             if case_id:
                 case_id = case_id[0]
             else:
-                email_from = self.pool.get('res.partner.address').browse(cr, uid,
-                        [ZABER_DEFAULT_CONTACT_ID])[0].email
                 case_id = helpdesk_obj.create(cr, uid,
-                                              {'name': crm_subject,
-                                               'email_from': email_from,
-                                               'partner_id': ZABER_PARTNER_ID,
+                                              {'name': subject,
+                                               'email_from': section.user_id.user_email,
+                                               'partner_id': partner_id,
                                                'state': 'done',
-                                               'description': crm_subject,
-                                               'partner_address_id': ZABER_DEFAULT_CONTACT_ID,
+                                               'description': subject,
+                                               'partner_address_id': partner_address_id,
+                                               'section_id': section_id
                                               })
             # Fetch the case obj so we can get its particulars
             case = helpdesk_obj.browse(cr, uid, case_id, context=context)
-            # START HERE
+
+            # Create a list of emails we're going to send this alert to
+            emails = [section.user_id.user_email] + (case.email_cc or '').split(',')
+            emails = filter(None, emails)
+            if not emails:
+                emails = [section.user_id.user_email]
+
+            body = u"The following Incoming Shipment has had products\n"\
+                   u"returned.  Please check before paying the related\n"\
+                   u"invoice.\n\n"
+            body += u"Reference: {}\n".format(pick.name)
+            body += u"PO: {}\n".format(pick.purchase_id.name)
+
+            # get the current user's particulars
+            res_user = self.pool.get('res.users').browse(cr, uid, uid)
+
+            # Add this correspondence to the new case
+            self.pool.get('mail.message').create(cr, uid, {'model': 'crm.helpdesk',
+                                         'res_id': case_id,
+                                         'user_id': res_user.id,
+                                         'subject': 'Historize',
+                                         'date': time.strftime('%Y-%m-%d %H:%M:%S'),
+                                         'body_text': body,
+                                         'state': 'received'})
+
+            # Send the email
+            self.pool.get('mail.message').schedule_with_attach(cr, uid,
+                    res_user.user_email, # sender
+                    emails,
+                    subject,
+                    body,
+                    model='crm.helpdesk',
+                    reply_to=res_user.user_email,
+                    res_id=case.id,
+                    context=context)
 
         #
         # end customer case entry
