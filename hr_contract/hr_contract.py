@@ -19,6 +19,8 @@
 #
 ##############################################################################
 import time
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from osv import fields, osv
 
@@ -95,6 +97,21 @@ class hr_contract(osv.osv):
              if contract['date_start'] and contract['date_end'] and contract['date_start'] > contract['date_end']:
                  return False
         return True
+
+    def onchange_date_start(self, cr, uid, ids, date_start, context=None):
+        # TODO check if this is a new record, or something else, so that it
+        # doesn't randomly change the name when we don't want it to change
+        if not date_start:
+            return {}
+        # change Contract Reference to show:
+        #   Hire (docs, ADP, rev3: yyyymmdd, rev6: yyyymmdd)
+        # where rev3 gives start date + 90 and rev6 gives start date + 180 days
+        date_start = datetime.strptime(date_start, "%Y-%m-%d").date()
+        rev3 = date_start + relativedelta(days=90)
+        rev6 = date_start + relativedelta(days=180)
+        rev3str = datetime.strftime(rev3, "%Y%m%d")
+        rev6str = datetime.strftime(rev6, "%Y%m%d")
+        return {'value': {'name': 'Hire (docs, ADP, rev3: %s, rev6: %s)' % (rev3str, rev6str)}}
 
     _constraints = [
         (_check_dates, 'Error! contract start-date must be lower then contract end-date.', ['date_start', 'date_end'])
