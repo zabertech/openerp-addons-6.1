@@ -88,7 +88,7 @@ class hr_contract(osv.osv):
         return type_ids and type_ids[0] or False
 
     _defaults = {
-        'date_start': lambda *a: time.strftime("%Y-%m-%d"),
+#TODO check        'date_start': lambda *a: time.strftime("%Y-%m-%d"),
         'type_id': _get_type
     }
 
@@ -98,10 +98,10 @@ class hr_contract(osv.osv):
                  return False
         return True
 
-    def onchange_date_start(self, cr, uid, ids, date_start, context=None):
-        # TODO check if this is a new record, or something else, so that it
-        # doesn't randomly change the name when we don't want it to change
-        if not date_start:
+    def onchange_date_start(self, cr, uid, ids, date_start, name, context=None):
+        # only populate name if there isn't anything already there
+        # and only if date_start has actually been filled out
+        if not date_start or name:
             return {}
         # change Contract Reference to show:
         #   Hire (docs, ADP, rev3: yyyymmdd, rev6: yyyymmdd)
