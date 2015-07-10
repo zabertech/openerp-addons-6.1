@@ -88,7 +88,6 @@ class hr_contract(osv.osv):
         return type_ids and type_ids[0] or False
 
     _defaults = {
-#TODO check        'date_start': lambda *a: time.strftime("%Y-%m-%d"),
         'type_id': _get_type
     }
 
