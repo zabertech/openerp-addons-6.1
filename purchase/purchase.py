@@ -705,6 +705,19 @@ class purchase_order_line(osv.osv):
     _name = 'purchase.order.line'
     _description = 'Purchase Order Line'
 
+    # #1232 cancel chained stock move of po line if there is one. This
+    # will prevent orphaned stock moves from procurements to stock if
+    # this is a merged PO.
+    def unlink(self, cr, uid, ids, context=None):
+        if isinstance(ids, int) or isinstance(ids, long):
+            ids = [ids]
+        
+        for line in self.browse(cr, uid, ids, context):
+            if line.move_dest_id.id and line.move_dest_id.state not in ['done', 'cancel']:
+                self.pool.get('stock.move').action_cancel(cr, uid, [line.move_dest_id.id], context)
+        super(purchase_order_line, self).unlink(cr, uid, ids, context)
+
+
     def copy_data(self, cr, uid, id, default=None, context=None):
         if not default:
             default = {}
