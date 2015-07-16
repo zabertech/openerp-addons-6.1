@@ -1156,7 +1156,6 @@ class account_voucher(osv.osv):
 
         voucher_brw = self.pool.get('account.voucher').browse(cr,uid,voucher_id,context)
         current_currency_obj = voucher_brw.currency_id or voucher_brw.journal_id.company_id.currency_id
-
         if not currency_obj.is_zero(cr, uid, current_currency_obj, line_total):
             diff = line_total
             account_id = False
@@ -1174,6 +1173,14 @@ class account_voucher(osv.osv):
                 account_id = voucher_brw.partner_id.property_account_receivable.id
             else:
                 account_id = voucher_brw.partner_id.property_account_payable.id
+
+            # Colin Ligertwood <colin@zaber.com> 2015-07-16
+            # issue #1300
+            # Use the income_currency_exchange_account_id as the default account for
+            # any mysterious writeoffs
+            if not account_id:
+                account_id = voucher_brw.company_id.income_currency_exchange_account_id.id
+
             move_line = {
                 'name': write_off_name or name,
                 'account_id': account_id,
@@ -1243,6 +1250,7 @@ class account_voucher(osv.osv):
             move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, context), context)
             move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
             line_total = move_line_brw.debit - move_line_brw.credit
+
             rec_list_ids = []
             if voucher.type == 'sale':
                 line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
