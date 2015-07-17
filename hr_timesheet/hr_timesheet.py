@@ -175,6 +175,100 @@ class hr_analytic_timesheet(osv.osv):
            raise osv.except_osv(_('Warning !'), _('No analytic account defined on the project.\nPlease set one or we can not automatically fill the timesheet.'))
         return super(hr_analytic_timesheet, self).create(cr, uid, vals, context=context)
 
+    def write(self, cr, uid, ids, vals, context=None):
+        # #1081 send an email to employee when HR changes the analytic code in a
+        # timesheet line of that employee
+
+        # surely there's a better way to figure out what user's changes to
+        # capture, using actual user roles, say
+        HR_USER_IDS = [
+            35, # Denise
+            # FOR TESTING: 119, # sutracy
+        ]
+
+        if uid in HR_USER_IDS and 'account_id' in vals:
+            for old_analytic_ts in self.browse(cr, uid, ids, context=context):
+                if old_analytic_ts.sheet_id.user_id != uid \
+                        and old_analytic_ts.sheet_id.state in ('confirm') \
+                        and old_analytic_ts.account_id.id != vals['account_id']:
+                    # doing this the easy way....just send an email for every change
+                    # nicer way would be to collect all changes for each
+                    # user...
+                    self.send_analytic_change_email(cr, uid, context, old_analytic_ts, vals['account_id'])
+        return super(hr_analytic_timesheet, self).write(cr, uid, ids, vals, context=context)
+
+    def send_analytic_change_email(self, cr, uid, context, old_analytic_ts, new_account_id):
+        # create a customer case entry to immediately notify user
+        helpdesk_obj = self.pool.get('crm.helpdesk')
+        section_obj = self.pool.get('crm.case.section')
+        employee_obj = self.pool.get('hr.employee')
+        analytic_obj = self.pool.get('account.analytic.account')
+        sales_team_code = 'hrp'
+
+        # Select a sales team to assign this case to
+        try:
+            section_id = section_obj.search(cr, uid, [('code', '=', sales_team_code)])[0]
+        except IndexError:
+            raise osv.except_osv('Error', 'You must configure a sales team with the code "hrp" in order to notify employees of a timesheet line analytic change.')
+        section = section_obj.browse(cr, uid, section_id, context=None)
+        subject = u"Timesheet Analytic Updated"
+
+        # Get information needed to send email
+        employee = employee_obj.browse(cr, uid, old_analytic_ts.sheet_id.employee_id.id)
+        partner_address_id = employee.address_id.id
+        partner_id = 1 # Zaber partner
+        new_account_name = analytic_obj.browse(cr, uid, new_account_id, context).name
+        res_user = self.pool.get('res.users').browse(cr, uid, uid)
+
+        # Search for customer case by subject
+        case_id = helpdesk_obj.search(cr, uid, [('name', '=', subject),
+                                                ('partner_id', '=', partner_id)])
+
+        if case_id:
+            case_id = case_id[0]
+        else:
+            # if the case doesn't exist, create it
+            case_id = helpdesk_obj.create(cr, uid,
+                                          {'name': subject,
+                                           'email_from': section.user_id.user_email,
+                                           'partner_id': partner_id,
+                                           'state': 'done',
+                                           'description': subject,
+                                           'partner_address_id': partner_address_id,
+                                           'section_id': section_id,
+                                           })
+        # Fetch the case obj so we can get its particulars
+        case = helpdesk_obj.browse(cr, uid, case_id, context=context)
+
+        body = u"I changed the analytic code for your timesheet line on " + \
+               old_analytic_ts.line_id.date + \
+               u" with description\n  \"" + \
+               old_analytic_ts.line_id.name + \
+               u"\"\nwas changed from " + \
+               old_analytic_ts.account_id.name + \
+               u" to " + new_account_name + \
+               u".\n\nPlease see me if you have any questions." + \
+               u"\n\n[This email was automatically generated.]"
+
+        # Add this correspondence to the new case
+        self.pool.get('mail.message').create(cr, uid, {'model': 'crm.helpdesk',
+                'res_id': case_id,
+                'user_id': res_user.id,
+                'subject': 'Historize',
+                'date': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'body_text': body,
+                'state': 'received'})
+        # Send the email
+        self.pool.get('mail.message').schedule_with_attach(cr, uid,
+                res_user.user_email, # from-email
+                [old_analytic_ts.sheet_id.employee_id.work_email], # to-email
+                subject,
+                body,
+                model='crm.helpdesk',
+                reply_to=res_user.user_email,
+                res_id=case.id,
+                context=context)
+
     def on_change_user_id(self, cr, uid, ids, user_id):
         if not user_id:
             return {}
