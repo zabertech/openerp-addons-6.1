@@ -78,7 +78,7 @@
                     <page string="Information" name="information">
                         <group col="2" colspan="2" name="left_column">
                             <separator colspan="2" string="Duration"/>
-                            <field name="date_start" />
+                            <field name="date_start" on_change="onchange_date_start(date_start, name)" />
                             <field name="date_end" />
                             <field name="working_hours"/>
                             <separator colspan="2" string="Trial Period"/>
