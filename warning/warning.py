@@ -50,6 +50,7 @@ class res_partner(osv.osv):
          'purchase_warn' : 'no-message',
          'picking_warn' : 'no-message',
          'invoice_warn' : 'no-message',
+         'invoice_payment_warn' : 'no-message',
     }
 
 res_partner()
