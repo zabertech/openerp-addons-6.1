@@ -42,6 +42,8 @@ class res_partner(osv.osv):
         'picking_warn_msg' : fields.text('Message for Stock Picking'),
         'invoice_warn' : fields.selection(WARNING_MESSAGE, 'Invoice', help=WARNING_HELP, required=True),
         'invoice_warn_msg' : fields.text('Message for Invoice'),
+        'invoice_payment_warn' : fields.selection(WARNING_MESSAGE, 'Invoice Payment', help=WARNING_HELP, required=True),
+        'invoice_payment_warn_msg' : fields.text('Message for Invoice Payment'),
     }
     _defaults = {
          'sale_warn' : 'no-message',
@@ -150,6 +152,40 @@ class account_invoice(osv.osv):
         return {'value': result.get('value',{}), 'warning':warning}
 
 account_invoice()
+
+class account_voucher(osv.osv):
+    _inherit = 'account.voucher'
+    def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id,
+        amount, currency_id, ttype, date, context=None):
+        result = super(account_voucher, self).onchange_partner_id(cr, uid, ids,
+                partner_id, journal_id, amount, currency_id, ttype, date, context)
+
+        # we only care about warnings if this is a supplier payment (as opposed
+        # to a customer payment, or a supplier or customer receipt)
+        if not partner_id or not 'supplier_payment' in context \
+            or not context['supplier_payment']:
+            return result
+
+        warning = {}
+        title = False
+        message = False
+
+        partner = self.pool.get('res.partner').browse(cr, uid, partner_id)
+        if partner.invoice_payment_warn != 'no-message':
+            if partner.invoice_payment_warn == 'block':
+                raise osv.except_osv(_('Alert for %s !') % (partner.name), partner.invoice_payment_warn_msg)
+
+            title = _("Warning for %s") % partner.name
+            message = partner.invoice_payment_warn_msg
+            warning = {
+                'title': title,
+                'message': message
+                }
+        if result.get('warning',False):
+            warning['title'] = title and title +' & '+ result['warning']['title'] or result['warning']['title']
+            warning['message'] = message and message + ' ' + result['warning']['message'] or result['warning']['message']
+
+        return {'value': result.get('value',{}), 'warning':warning}
 
 class stock_picking(osv.osv):
     _inherit = 'stock.picking'
