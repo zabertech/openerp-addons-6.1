@@ -244,7 +244,7 @@ class hr_analytic_timesheet(osv.osv):
                old_analytic_ts.line_id.date + \
                u" with description\n  \"" + \
                old_analytic_ts.line_id.name + \
-               u"\"\nwas changed from " + \
+               u"\"\nfrom " + \
                old_analytic_ts.account_id.name + \
                u" to " + new_account_name + \
                u".\n\nPlease see me if you have any questions." + \
