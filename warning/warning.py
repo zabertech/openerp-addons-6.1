@@ -161,10 +161,7 @@ class account_voucher(osv.osv):
         result = super(account_voucher, self).onchange_partner_id(cr, uid, ids,
                 partner_id, journal_id, amount, currency_id, ttype, date, context)
 
-        # we only care about warnings if this is a supplier payment (as opposed
-        # to a customer payment, or a supplier or customer receipt)
-        if not partner_id or not 'supplier_payment' in context \
-            or not context['supplier_payment']:
+        if not partner_id:
             return result
 
         warning = {}
