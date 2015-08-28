@@ -34,6 +34,12 @@
                             <field name="invoice_warn_msg" colspan="3" nolabel="1" 
                                     attrs="{'required':[('invoice_warn','!=','no-message')],'readonly':[('invoice_warn','=','no-message')]}"/>
                         </group>
+                        <group colspan="2" col="2">
+                            <separator string="Warning on the Invoice Payment" colspan="4"/>
+                            <field name="invoice_payment_warn" nolabel="1" />
+                            <field name="invoice_payment_warn_msg" colspan="3" nolabel="1"
+                                    attrs="{'required':[('invoice_payment_warn','!=','no-message')],'readonly':[('invoice_payment_warn','=','no-message')]}"/>
+                        </group>
                     </page>
                 </notebook>
             </field>
