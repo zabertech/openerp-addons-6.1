@@ -761,8 +761,8 @@ class account_voucher(osv.osv):
             currency_id = journal.currency.id
         vals['value'].update({'currency_id': currency_id})
         res = self.onchange_partner_id(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context)
-        for key in res.keys():
-            vals[key].update(res[key])
+        for k,v in res.iteritems():
+            vals.setdefault(k,{}).update(v)
         return vals
 
     def proforma_voucher(self, cr, uid, ids, context=None):
