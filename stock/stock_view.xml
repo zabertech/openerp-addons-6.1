@@ -1360,7 +1360,7 @@
             <field name="name">stock.move.tree</field>
             <field name="model">stock.move</field>
             <field name="type">tree</field>
-            <field eval="6" name="priority"/>
+            <field eval="4" name="priority"/>
             <field name="arch" type="xml">
                 <tree colors="grey:state == 'cancel';red:(state not in ('cancel','done')) and date > current_date" string="Moves" editable="top">
                     <field name="name"/>
@@ -1541,7 +1541,7 @@
             <field name="name">stock.move.tree2</field>
             <field name="model">stock.move</field>
             <field name="type">tree</field>
-            <field name="priority" eval="6" />
+            <field name="priority" eval="5" />
             <field name="arch" type="xml">
                 <tree colors="grey:state == 'cancel'" string="Moves">
                     <field name="picking_id" string="Reference"/>
