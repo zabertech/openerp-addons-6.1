@@ -27,6 +27,7 @@
         <!--
     Resource: stock.location
     -->
+<!-- #1358 removed as they're no longer in use
         <record id="stock_location_locations" model="stock.location">
             <field name="name">Physical Locations</field>
             <field name="usage">view</field>
@@ -54,6 +55,7 @@
             <field name="usage">inventory</field>
             <field name="company_id"></field>
         </record>
+-->
 
         <record id="location_inventory" model="stock.location">
             <field name="name">Inventory loss</field>
@@ -94,6 +96,7 @@
         <record id="journal_delivery" model="stock.journal">
             <field name="name">Delivery Orders</field>
         </record>
+<!-- #1358 removed as it's no longer in use
         <record id="stock_location_output" model="stock.location">
             <field name="name">Output</field>
             <field name="location_id" ref="stock_location_company"/>
@@ -107,7 +110,7 @@
             <field name="name">Stock</field>
             <field name="location_id" ref="stock_location_company"/>
         </record>
-
+-->
         <!--
     Properties
     -->
