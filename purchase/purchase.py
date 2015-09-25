@@ -101,29 +101,39 @@ class purchase_order(osv.osv):
     def _shipped_rate(self, cr, uid, ids, name, arg, context=None):
         if not ids: return {}
         res = {}
-        for id in ids:
-            res[id] = [0.0,0.0]
-        cr.execute('''SELECT
-                p.purchase_id,sum(m.product_qty), m.state
-            FROM
-                stock_move m
-            LEFT JOIN
-                stock_picking p on (p.id=m.picking_id)
-            WHERE
-                p.purchase_id IN %s GROUP BY m.state, p.purchase_id''',(tuple(ids),))
-        for oid,nbr,state in cr.fetchall():
-            if state=='cancel':
-                continue
-            if state=='done':
-                res[oid][0] += nbr or 0.0
-                res[oid][1] += nbr or 0.0
+        unshipped_ids = []
+        for purchase in self.browse(cr, uid, ids, context=context):
+            # if shipped is true, set received 100%
+            if purchase.shipped:
+                res[purchase.id] = 100.0
+            # else collect the id for calculating the rate received
             else:
-                res[oid][1] += nbr or 0.0
-        for r in res:
-            if not res[r][1]:
-                res[r] = 0.0
-            else:
-                res[r] = 100.0 * res[r][0] / res[r][1]
+                unshipped_ids.append(purchase.id)
+                res[purchase.id] = [0.0,0.0]
+
+        if unshipped_ids:
+            cr.execute('''SELECT
+                    p.purchase_id,sum(m.product_qty), m.state
+                FROM
+                    stock_move m
+                LEFT JOIN
+                    stock_picking p on (p.id=m.picking_id)
+                WHERE
+                    p.purchase_id IN %s GROUP BY m.state, p.purchase_id''',(tuple(unshipped_ids),))
+            for oid,nbr,state in cr.fetchall():
+                if state=='cancel':
+                    continue
+                if state=='done':
+                    res[oid][0] += nbr or 0.0
+                    res[oid][1] += nbr or 0.0
+                else:
+                    res[oid][1] += nbr or 0.0
+
+            for r in unshipped_ids:
+                if not res[r][1]:
+                    res[r] = 0.0
+                else:
+                    res[r] = 100.0 * res[r][0] / res[r][1]
         return res
 
     def _get_order(self, cr, uid, ids, context=None):

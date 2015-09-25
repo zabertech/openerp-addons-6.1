@@ -672,9 +672,9 @@ class product_product(osv.osv):
         context_wo_lang.pop('lang', None)
         product = self.read(cr, uid, id, ['name'], context=context_wo_lang)
         default = default.copy()
-        default['name'] = product['name']
+        default.setdefault('name',product['name'])
         if not context.get('suppress_copy_suffix', False):
-          default['name'] = product['name'] + ' (copy)'
+          default['name'] += ' (copy)'
 
         if context.get('variant',False):
             fields = ['product_tmpl_id', 'active', 'variants', 'default_code',
