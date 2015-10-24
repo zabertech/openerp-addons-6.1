@@ -1,7 +1,7 @@
 <openerp>
     <data>
         <!-- Delivery Carriers -->
-        <menuitem id="menu_delivery" name="Delivery" parent="stock.menu_stock_configuration" sequence="4"/>
+        <menuitem id="menu_delivery" name="Delivery" parent="base.menu_base_config" sequence="4"/>
 
         <record id="view_delivery_carrier_tree" model="ir.ui.view">
             <field name="name">delivery.carrier.tree</field>
