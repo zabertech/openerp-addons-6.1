@@ -198,15 +198,15 @@ class hr_analytic_timesheet(osv.osv):
                         new_vals['account_id'] = vals['account_id']
                     if vals['product_id'] and old_analytic_ts.product_id.id != vals['product_id']:
                         new_vals['product_id'] = vals['product_id']
-                    # doing this the easy way....just send an email for every change
+                    # doing this the easy way: just send an email for every change
                     # nicer way would be to collect all changes for each
                     # user...
                     if new_vals:
-                        self.send_analytic_change_email(cr, uid, context, old_analytic_ts, new_vals)
+                        self.send_ts_line_change_email(cr, uid, context, old_analytic_ts, new_vals)
 
         return super(hr_analytic_timesheet, self).write(cr, uid, ids, vals, context=context)
 
-    def send_analytic_change_email(self, cr, uid, context, old_analytic_ts, new_vals):
+    def send_ts_line_change_email(self, cr, uid, context, old_analytic_ts, new_vals):
         # create a customer case entry to immediately notify user
         helpdesk_obj = self.pool.get('crm.helpdesk')
         section_obj = self.pool.get('crm.case.section')
