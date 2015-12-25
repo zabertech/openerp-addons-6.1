@@ -178,31 +178,41 @@ class hr_analytic_timesheet(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         # #1081 send an email to employee when HR changes the analytic code in a
         # timesheet line of that employee
+        # #1426 update HR_USER_IDS, also trigger notification when product is
+        # changed in a timesheet line
 
         # surely there's a better way to figure out what user's changes to
         # capture, using actual user roles, say
         HR_USER_IDS = [
             35, # Denise
+            105, # Bronwyn
             # FOR TESTING: 119, # sutracy
         ]
 
-        if uid in HR_USER_IDS and 'account_id' in vals:
+        if uid in HR_USER_IDS and ('account_id' in vals or 'product_id' in vals):
             for old_analytic_ts in self.browse(cr, uid, ids, context=context):
+                new_vals = {}
                 if old_analytic_ts.sheet_id.user_id != uid \
-                        and old_analytic_ts.sheet_id.state in ('confirm') \
-                        and old_analytic_ts.account_id.id != vals['account_id']:
+                        and old_analytic_ts.sheet_id.state in ('confirm'):
+                    if vals['account_id'] and old_analytic_ts.account_id.id != vals['account_id']:
+                        new_vals['account_id'] = vals['account_id']
+                    if vals['product_id'] and old_analytic_ts.product_id.id != vals['product_id']:
+                        new_vals['product_id'] = vals['product_id']
                     # doing this the easy way....just send an email for every change
                     # nicer way would be to collect all changes for each
                     # user...
-                    self.send_analytic_change_email(cr, uid, context, old_analytic_ts, vals['account_id'])
+                    if new_vals:
+                        self.send_analytic_change_email(cr, uid, context, old_analytic_ts, new_vals)
+
         return super(hr_analytic_timesheet, self).write(cr, uid, ids, vals, context=context)
 
-    def send_analytic_change_email(self, cr, uid, context, old_analytic_ts, new_account_id):
+    def send_analytic_change_email(self, cr, uid, context, old_analytic_ts, new_vals):
         # create a customer case entry to immediately notify user
         helpdesk_obj = self.pool.get('crm.helpdesk')
         section_obj = self.pool.get('crm.case.section')
         employee_obj = self.pool.get('hr.employee')
         analytic_obj = self.pool.get('account.analytic.account')
+        product_obj = self.pool.get('product.product')
         sales_team_code = 'hrp'
 
         # Select a sales team to assign this case to
@@ -211,14 +221,19 @@ class hr_analytic_timesheet(osv.osv):
         except IndexError:
             raise osv.except_osv('Error', 'You must configure a sales team with the code "hrp" in order to notify employees of a timesheet line analytic change.')
         section = section_obj.browse(cr, uid, section_id, context=None)
-        subject = u"Timesheet Analytic Updated"
+        subject = u"Timesheet Modified"
 
         # Get information needed to send email
         employee = employee_obj.browse(cr, uid, old_analytic_ts.sheet_id.employee_id.id)
         partner_address_id = employee.address_id.id
         partner_id = 1 # Zaber partner
-        new_account_name = analytic_obj.browse(cr, uid, new_account_id, context).name
         res_user = self.pool.get('res.users').browse(cr, uid, uid)
+        new_account_name = ''
+        new_product_name = ''
+        if 'account_id' in new_vals:
+            new_account_name = analytic_obj.browse(cr, uid, new_vals['account_id'], context).name
+        if 'product_id' in new_vals:
+            new_product_name = product_obj.browse(cr, uid, new_vals['product_id'], context).name
 
         # Search for customer case by subject
         case_id = helpdesk_obj.search(cr, uid, [('name', '=', subject),
@@ -240,13 +255,24 @@ class hr_analytic_timesheet(osv.osv):
         # Fetch the case obj so we can get its particulars
         case = helpdesk_obj.browse(cr, uid, case_id, context=context)
 
-        body = u"I changed the analytic code for a timesheet line on " + \
+        field_str = u""
+        change_str = u""
+        if new_account_name:
+            change_str = old_analytic_ts.account_id.name + u" to " + new_account_name
+            field_str += u"analytic"
+            if new_product_name:
+                change_str += u" and "
+                field_str += u" and "
+        if new_product_name:
+            change_str += old_analytic_ts.product_id.name + u" to " + new_product_name
+            field_str += u"product"
+
+        body = u"I changed the " + field_str + " for a timesheet line on " + \
                old_analytic_ts.line_id.date + \
                u" with description\n  \"" + \
                old_analytic_ts.line_id.name + \
                u"\"\nfrom " + \
-               old_analytic_ts.account_id.name + \
-               u" to " + new_account_name + \
+               change_str + \
                u".\n\nPlease see me if you have any questions." + \
                u"\n\n[This email was automatically generated.]"
 
