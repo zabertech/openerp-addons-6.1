@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<openerp>
+  <data>
+
+  <!--====================================================
+      View: zerp.users.rpc.keys
+    ==================================================== -->
+
+  <record id="view_zerp_users_rpc_keys_tree" model="ir.ui.view">
+    <field name="name">view.zerp.users.rpc.keys.tree</field>
+    <field name="model">zerp.zerp.users.rpc.keys</field>
+    <field name="type">tree</field>
+    <field name="arch" type="xml">
+      <tree string="RPC API Keys" editable="bottom">
+        <field name="name"/>
+        <field name="user_id"/>
+        <field name="expiry_time"/>
+      </tree>
+    </field>
+  </record>
+  <record id="view_zerp_users_rpc_keys_form" model="ir.ui.view">
+    <field name="name">view.zerp.users.rpc.keys.form</field>
+    <field name="model">zerp.zerp.users.rpc.keys</field>
+    <field name="type">form</field>
+    <field name="arch" type="xml">
+      <form string="RPC Keys">
+        <field name="name" colspan="4"/>
+        <field name="user_id" colspan="4"/>
+        <field name="expiry_time" colspan="4"/>
+      </form>
+    </field>
+  </record>
+
+  <!--====================================================
+      View: zerp.users.sessions
+    ==================================================== -->
+
+  <record id="view_zerp_users_sessions_tree" model="ir.ui.view">
+    <field name="name">view.zerp.users.rpc.keys.tree</field>
+    <field name="model">zerp.zerp.users.rpc.keys</field>
+    <field name="type">tree</field>
+    <field name="arch" type="xml">
+      <tree string="">
+        <field name="name"/>
+        <field name="user_id"/>
+        <field name="last_request"/>
+      </tree>
+    </field>
+  </record>
+  <record id="view_zerp_users_sessions_form" model="ir.ui.view">
+    <field name="name">view.zerp.users.rpc.keys.form</field>
+    <field name="model">zerp.zerp.users.rpc.keys</field>
+    <field name="type">form</field>
+    <field name="arch" type="xml">
+      <form string="RPC Keys">
+        <field name="name" colspan="4"/>
+        <field name="user_id" colspan="4"/>
+        <field name="last_request" colspan="4"/>
+      </form>
+    </field>
+  </record>
+
+  <!--====================================================
+      Actions
+    ==================================================== -->
+
+  <record id="action_zerp_rpc_keys_view" model="ir.actions.act_window">
+    <field name="name">RPC Keys</field>
+    <field name="type">ir.actions.act_window</field>
+    <field name="res_model">zerp.users.rpc.keys</field>
+    <field name="view_mode">tree,form</field>
+    <field name="view_id" ref="view_zerp_users_rpc_keys_tree"/>
+  </record>
+
+
+  <record id="action_zerp_rpc_sessions_view" model="ir.actions.act_window">
+    <field name="name">RPC Sessions</field>
+    <field name="type">ir.actions.act_window</field>
+    <field name="res_model">zerp.users.sessions</field>
+    <field name="view_mode">tree,form</field>
+    <field name="view_id" ref="view_zerp_users_sessions_tree"/>
+  </record>
+
+  <!--====================================================
+      Menu Items
+
+      Should be hung off of:
+
+      Menu/Dev Tools/RPC
+    ==================================================== -->
+
+  <menuitem id="menu_zerp_rpc"
+            name="RPC"
+            sequence="20"
+            parent="zerp_dev_tools.devel_menu"/>
+
+  <menuitem id="menu_zerp_users_rpc"
+            name="API Keys"
+            sequence="70"
+            action="action_zerp_rpc_keys_view"
+            parent="menu_zerp_rpc"/>
+
+
+  <!--====================================================
+      Menu Items
+
+      Should be hung off of:
+
+      Menu/Settings/Security
+    ==================================================== -->
+
+  <menuitem id="menu_zerp_users_sessions"
+            name="RPC Sessions"
+            sequence="70"
+            action="action_zerp_rpc_sessions_view"
+            parent="base.menu_security"/>
+
+  </data>
+</openerp>
+

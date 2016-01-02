@@ -1,2 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_res_company_ldap,res_company_ldap,model_res_company_ldap,base.group_system,1,1,1,1
+access_zerp_users_rpc_keys,zerp_users_rpc_keys_manager,model_zerp_users_rpc_keys,base.group_system,1,1,1,1
+access_zerp_users_sessions,zerp_users_sessions_manager,model_zerp_users_sessions,base.group_system,1,1,1,1
+access_zerp_creators_sessions,zerp_creators_sessions_manager,model_zerp_users_sessions,group_name_session_creator,1,1,1,1
