@@ -290,6 +290,12 @@ class users(osv.osv):
             cr.close()
             return user_id
 
+        # Check Session ID
+        user_id = pooler.get_pool(db).get('zerp.users.sessions').login_session_id(cr,login,password)
+        if user_id:
+            cr.close()
+            return user_id
+
         cr.close()
         return user_id
 

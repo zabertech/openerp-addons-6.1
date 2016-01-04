@@ -112,7 +112,7 @@ class user_sessions(osv.osv_memory):
     }
     _defaults = {
         'name': lambda *a: os.urandom(16).encode('base-64')[:-3],
-        'last_request': lambda *a: datetime.strptime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S'),
+        'last_request': lambda *a: datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
     }
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'RPC Key must be unique!'),
@@ -152,7 +152,7 @@ class user_sessions(osv.osv_memory):
         """
         sess_ids = self.search(cr,1,[('name','=',session_key)])
         if not sess_ids: return
-        last_request = datetime.strptime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')
+        last_request = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
         return self.write(cr,1,sess_ids,{'last_request':last_request})
 
     def session_timeout(self):
@@ -165,8 +165,28 @@ class user_sessions(osv.osv_memory):
             DELETE FROM     zerp_users_sessions
             WHERE
                             age(now() at TIME ZONE 'UTC',create_date) > interval %s
-
         ''',('{} seconds'.format(self.session_timeout()),))
+
+    def login_session_id(self, cr, login, api_key):
+        # TODO: This can be cleaned up into a single UPDATE query
+        cr.execute('''
+            SELECT    zus.id,zus.user_id
+            FROM      zerp_users_sessions zus
+            LEFT JOIN res_users ru
+            ON        ru.id = zus.user_id
+            WHERE     ru.login = %s
+                      AND zus.name = %s
+        ''',(login,api_key,))
+        r = cr.fetchall()
+        if r:
+            r = r[0]
+            cr.execute('''
+              UPDATE    zerp_users_sessions
+              SET       last_request=now() AT TIME ZONE 'UTC'
+              WHERE     id = %s
+            ''',(r[0],))
+            return r[1]
+        return
 
     def check_session_id(self, cr, uid, api_key):
         # TODO: This can be cleaned up into a single UPDATE query
@@ -175,7 +195,7 @@ class user_sessions(osv.osv_memory):
             FROM      zerp_users_sessions
             WHERE     user_id = %s
                       AND name = %s
-        ''',(uid,password,'{} seconds'.format(self.session_timeout()),))
+        ''',(uid,api_key,))
         r = cr.fetchall()
         if r:
             r = r[0]
