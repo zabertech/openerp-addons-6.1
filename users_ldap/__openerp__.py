@@ -21,7 +21,7 @@
 {
     "name" : "Authentication via LDAP",
     "version" : "1.0",
-    "depends" : ["base"],
+    "depends" : ["base","zerp_dev_tools"],
     "images" : ["images/ldap_configuration.jpeg"],
     "author" : "OpenERP SA",
     'complexity': "expert",
@@ -119,7 +119,9 @@ will disable LDAP authentication if installed at the same time.
     "category" : "Tools",
     "data" : [
         "users_ldap_view.xml",
+        "users_sessions_views.xml",
         "user_ldap_installer.xml",
+        "security/security.xml",
         "security/ir.model.access.csv",
     ],
     "auto_install": False,
