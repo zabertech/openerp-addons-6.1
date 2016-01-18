@@ -966,6 +966,7 @@
                 <form string="Account Tax">
                     <group colspan="4" col="6">
                         <field name="name"/>
+                        <field name="name_public"/>
                         <field name="description"/>
                         <field name="type_tax_use"/>
                         <field name="price_include"/>
