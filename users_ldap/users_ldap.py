@@ -185,7 +185,7 @@ class CompanyLDAP(osv.osv):
         :return: res_users id
         :rtype: int
         """
-        
+
         user_id = False
         login = tools.ustr(login)
         cr.execute("SELECT id, active FROM res_users WHERE login=%s", (login,))
@@ -251,10 +251,22 @@ res_company()
 class users(osv.osv):
     _inherit = "res.users"
     def login(self, db, login, password):
+
+        # No password? No <3
+        if not password:
+            return
+
+        # Do the normal method of accessing data
         user_id = super(users, self).login(db, login, password)
         if user_id:
             return user_id
+
         cr = pooler.get_db(db).cursor()
+
+        # Flush stale sessions
+        pooler.get_pool(db).get('zerp.users.sessions').flush_stale(cr)
+
+        # Check LDAP
         ldap_obj = pooler.get_pool(db).get('res.company.ldap')
         for conf in ldap_obj.get_ldap_dicts(cr):
             entry = ldap_obj.authenticate(conf, login, password)
@@ -268,6 +280,22 @@ class users(osv.osv):
                                (tools.ustr(login),))
                     cr.commit()
                     break
+        if user_id:
+            cr.close()
+            return user_id
+
+        # Check API Key
+        user_id = pooler.get_pool(db).get('zerp.users.rpc.keys').login_api_key(cr,login,password)
+        if user_id:
+            cr.close()
+            return user_id
+
+        # Check Session ID
+        user_id = pooler.get_pool(db).get('zerp.users.sessions').login_session_id(cr,login,password)
+        if user_id:
+            cr.close()
+            return user_id
+
         cr.close()
         return user_id
 
@@ -288,8 +316,21 @@ class users(osv.osv):
                     self._uid_cache.setdefault(db, {})[uid] = passwd
                     cr.close()
                     return True
+
+        # Check API Key
+        user_id = pooler.get_pool(db).get('zerp.users.rpc.keys').check_api_key(cr,uid,passwd)
+        if user_id:
+            cr.close()
+            return user_id
+
+        # Check Session ID
+        user_id = pooler.get_pool(db).get('zerp.users.sessions').check_session_id(cr,uid,passwd)
+        if user_id:
+            cr.close()
+            return user_id
+
         cr.close()
         raise openerp.exceptions.AccessDenied()
-        
+
 users()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

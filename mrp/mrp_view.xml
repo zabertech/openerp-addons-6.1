@@ -679,8 +679,10 @@
                                 </tree>
                             </field>
 
+                            <!-- #1436 - disable form view so no one stumbles into it, which would
+			         stop the MO itself from being closed -->
                             <field colspan="2" name="move_lines2" nolabel="1"  domain="[('state','in', ('done', 'cancel'))]"
-                                       widget="one2many_list" mode="tree,form" height="275">
+                                       widget="one2many_list" mode="tree" height="275">
                                    <tree colors="red:scrapped==True;blue:state == 'draft';black:state in('picking_except','confirmed','ready','in_production');gray:state == 'cancel' " string="Consumed Products" editable="bottom">
                                        <field name="product_id" readonly="1"/>
                                        <field name="product_qty" readonly="1" string="Qty"/>
