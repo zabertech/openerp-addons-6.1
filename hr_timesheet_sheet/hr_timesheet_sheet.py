@@ -535,6 +535,17 @@ class hr_timesheet_line(osv.osv):
         return ts_line_ids
 
     _columns = {
+        # This field allows efficient record rules to be applied.
+        # See ticket: http://bugs.izaber.com/issues/2257
+        'stored_product_id': fields.related(
+                        'line_id', 'product_id',
+                        type='many2one',
+                        relation='product.product',
+                        string='Product Stored',
+                        store={
+                            'account.analytic.line': (_get_account_analytic_line, ['product_id'], 10),
+                        }
+        ),
         'sheet_id': fields.function(_sheet, string='Sheet',
             type='many2one', relation='hr_timesheet_sheet.sheet',
             store={
