@@ -534,6 +534,28 @@ class hr_timesheet_line(osv.osv):
         ts_line_ids = self.pool.get('hr.analytic.timesheet').search(cr, uid, [('line_id', 'in', ids)])
         return ts_line_ids
 
+    def create(self,cr,*args,**kwargs):
+        """ fields.related with storable turned on usually would take
+            care of this. However, due the reliance of the code on a inherited
+            many2one field, it doesn't get handled upon create. This is just a
+            fast hackish workaround to make things work properly.
+        """
+        line_id = super(hr_timesheet_line,self).create(cr,*args,**kwargs)
+        if line_id:
+            fixup_query = """
+                UPDATE
+                        hr_analytic_timesheet AS hat
+                SET
+                        stored_product_id = aal.product_id
+                FROM
+                        account_analytic_line aal
+                WHERE
+                        aal.id = hat.line_id
+                    AND hat.id = {}
+            """.format(long(line_id))
+            cr.execute(fixup_query)
+        return line_id
+
     _columns = {
         # This field allows efficient record rules to be applied.
         # See ticket: http://bugs.izaber.com/issues/2257
@@ -542,6 +564,7 @@ class hr_timesheet_line(osv.osv):
                         type='many2one',
                         relation='product.product',
                         string='Product Stored',
+                        noupdatestore=True,
                         store={
                             'account.analytic.line': (_get_account_analytic_line, ['product_id'], 10),
                         }
