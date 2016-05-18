@@ -2294,6 +2294,9 @@ class stock_move(osv.osv):
                     'debit': reference_amount,
                     'account_id': dest_account_id,
                     'stock_move_ids': [(6,0,[move.id])],
+                    # Added by Colin Ligertwood <colin@zaber.com> 2016-05-02
+                    # refs #1303, copy analytic account from stock move to valuation account moves
+                    'analytic_account_id': move.analytic_account_id.id
         }
         credit_line_vals = {
                     'name': move.name,
@@ -2305,6 +2308,9 @@ class stock_move(osv.osv):
                     'credit': reference_amount,
                     'account_id': src_account_id,
                     'stock_move_ids': [(6,0,[move.id])],
+                    # Added by Colin Ligertwood <colin@zaber.com> 2016-05-02
+                    # refs #1303, copy analytic account from stock move to valuation account moves
+                    'analytic_account_id': move.analytic_account_id.id
         }
 
         # if we are posting to accounts in a different currency, provide correct values in both currencies correctly
