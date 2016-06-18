@@ -557,6 +557,12 @@ class hr_timesheet_line(osv.osv):
         return line_id
 
     _columns = {
+        # Allows external scripts to create offline records and sync
+        'origin': fields.char('Origin',size=64,index=True,
+                            help="Used to determine what external program injected this record"),
+        'origin_id': fields.char('Origin ID',size=64,index=True,
+                            help="Used to determine what external program injected this record"),
+
         # This field allows efficient record rules to be applied.
         # See ticket: http://bugs.izaber.com/issues/2257
         'stored_product_id': fields.related(
@@ -682,6 +688,12 @@ class hr_attendance(osv.osv):
         return res
     
     _columns = {
+        # Allows external scripts to create offline records and sync
+        'origin': fields.char('Origin',size=64,index=True,
+                        help="Used to determine what external program injected this record"),
+        'origin_id': fields.char('Origin ID',size=64,index=True,
+                        help="Used to determine what external program injected this record"),
+
         'sheet_id': fields.function(_sheet, string='Sheet',
             type='many2one', relation='hr_timesheet_sheet.sheet',
             store={

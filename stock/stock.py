@@ -1287,7 +1287,7 @@ class stock_picking(osv.osv):
                         {
                             'product_qty' : move.product_qty - partial_qty[move.id],
                             'product_uos_qty': move.product_qty - partial_qty[move.id], #TODO: put correct uos_qty
-                            
+
                         })
 
             if new_picking:
@@ -1389,7 +1389,7 @@ class stock_production_lot(osv.osv):
                 name = '%s [%s]' % (name, record['ref'])
             res.append((record['id'], name))
         return res
-    
+
     def name_search(self, cr, uid, name, args=None, operator='ilike', context=None, limit=100):
         args = args or []
         ids = []
@@ -1617,10 +1617,10 @@ class stock_move(osv.osv):
 
         # Link Account Moves and Stock Moves: http://bugs.izaber.com/issues/1157
         'account_move_line_ids': fields.many2many(
-                                    'account.move.line', 
-                                    'stock_account_rel', 
-                                    'stock_move_id', 
-                                    'account_move_line_id', 
+                                    'account.move.line',
+                                    'stock_account_rel',
+                                    'stock_move_id',
+                                    'account_move_line_id',
                                     'Account Moves' ),
 
     }
@@ -2294,9 +2294,6 @@ class stock_move(osv.osv):
                     'debit': reference_amount,
                     'account_id': dest_account_id,
                     'stock_move_ids': [(6,0,[move.id])],
-                    # Added by Colin Ligertwood <colin@zaber.com> 2016-05-02
-                    # refs #1303, copy analytic account from stock move to valuation account moves
-                    'analytic_account_id': move.analytic_account_id.id
         }
         credit_line_vals = {
                     'name': move.name,
@@ -2308,9 +2305,6 @@ class stock_move(osv.osv):
                     'credit': reference_amount,
                     'account_id': src_account_id,
                     'stock_move_ids': [(6,0,[move.id])],
-                    # Added by Colin Ligertwood <colin@zaber.com> 2016-05-02
-                    # refs #1303, copy analytic account from stock move to valuation account moves
-                    'analytic_account_id': move.analytic_account_id.id
         }
 
         # if we are posting to accounts in a different currency, provide correct values in both currencies correctly
