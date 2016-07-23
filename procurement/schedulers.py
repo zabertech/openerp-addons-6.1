@@ -167,6 +167,9 @@ class procurement_order(osv.osv):
         @param uid: The current user ID for security checks
         @param context: A standard dictionary for contextual values
         @return:  Dictionary of values
+
+        Note-if zerp_shop module is installed, this function is overridden
+        in zaber-custom/zerp_shop/procurement.py
         """
         if context is None:
             context = {}
