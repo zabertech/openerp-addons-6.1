@@ -200,6 +200,7 @@ class sale_order(osv.osv):
         'shop_id': fields.many2one('sale.shop', 'Shop', required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'origin': fields.char('Source Document', size=64, help="Reference of the document that generated this sales order request."),
         'client_order_ref': fields.char('Customer Reference', size=64),
+        'online_id': fields.char('Online Order ID', size=64),
         'state': fields.selection([
             ('draft', 'Quotation'),
             ('waiting_date', 'Waiting Schedule'),
