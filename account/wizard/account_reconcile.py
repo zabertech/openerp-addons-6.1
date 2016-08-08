@@ -119,7 +119,7 @@ class account_move_line_reconcile_writeoff(osv.osv_memory):
         'analytic_id': fields.many2one('account.analytic.account', 'Analytic Account', domain=[('parent_id', '!=', False)]),
     }
     _defaults = {
-        'date_p': lambda *a: time.strftime('%Y-%m-%d'),
+        'date_p': lambda self, cr, uid, context: context.get('date_p', time.strftime('%Y-%m-%d')),
         'comment': 'Write-off',
     }
 
@@ -129,6 +129,20 @@ class account_move_line_reconcile_writeoff(osv.osv_memory):
             context = {}
         model_data_ids = mod_obj.search(cr, uid,[('model','=','ir.ui.view'),('name','=','account_move_line_reconcile_writeoff')], context=context)
         resource_id = mod_obj.read(cr, uid, model_data_ids, fields=['res_id'], context=context)[0]['res_id']
+
+        # grab the latest effective date of journal items selected; refs #2393
+        aml_obj = self.pool.get('account.move.line')
+        latest_date = ''
+        for aml_id in context.get('active_ids', []):
+            line_date = aml_obj.read(cr, uid, aml_id, ['date'])['date']
+            # since date is a string of form '%Y-%m-%d', just use string
+            # comparison to grab 'biggest' date
+            if line_date > latest_date:
+                latest_date = line_date
+        # only set in context if there is a date
+        if latest_date:
+            context['date_p'] = latest_date
+
         return {
             'name': _('Reconcile Writeoff'),
             'context': context,
