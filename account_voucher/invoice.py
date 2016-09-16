@@ -60,19 +60,17 @@ class invoice(osv.osv):
         partner_id = None
         invoice_type = None
         default_amount = 0
-        for invoice in self.browse(cr, uid, ids, context=context):
+        for invoice in self.read(cr, uid, ids, ['partner_id', 'type', 'residual'], context=context):
             if not partner_id:
-                partner_id = invoice.partner_id.id
-            elif partner_id != invoice.partner_id.id:
-                #raise TODO
-                pass
+                partner_id = invoice['partner_id'][0]
+            elif partner_id != invoice['partner_id'][0]:
+                raise osv.except_osv('Error', 'Cannot pay multiple invoices for different partners.')
             if not invoice_type:
-                invoice_type = invoice.type
-            elif invoice_type != invoice.type:
-                #raise TODO
-                pass
+                invoice_type = invoice['type']
+            elif invoice_type != invoice['type']:
+                raise osv.except_osv('Error', 'Cannot pay multiple invoices of different invoice types.')
 
-            default_amount += invoice.residual
+            default_amount += invoice['residual']
             # see if name edit from 2411 kicks in, else gather invoice.name
 
         if invoice_type in ('out_refund', 'in_refund'):
