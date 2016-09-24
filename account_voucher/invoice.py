@@ -53,6 +53,49 @@ class invoice(osv.osv):
                 }
         }
 
+    def invoice_pay_multiple(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+
+        partner_id = None
+        invoice_type = None
+        default_amount = 0
+        for invoice in self.read(cr, uid, ids, ['partner_id', 'type', 'residual'], context=context):
+            if not partner_id:
+                partner_id = invoice['partner_id'][0]
+            elif partner_id != invoice['partner_id'][0]:
+                raise osv.except_osv('Error', 'Cannot pay multiple invoices for different partners.')
+            if not invoice_type:
+                invoice_type = invoice['type']
+            elif invoice_type != invoice['type']:
+                raise osv.except_osv('Error', 'Cannot pay multiple invoices of different invoice types.')
+
+            default_amount += invoice['residual']
+            # see if name edit from 2411 kicks in, else gather invoice.name
+
+        if invoice_type in ('out_refund', 'in_refund'):
+            default_amount *= -1
+        return {
+            'name':_("Pay Invoice"),
+            'view_mode': 'form',
+            'view_id': False,
+            'view_type': 'form',
+            'res_model': 'account.voucher',
+            'type': 'ir.actions.act_window',
+            'nodestroy': True,
+            'target': 'current',
+            'domain': '[]',
+            'context': {
+                'default_partner_id': partner_id,
+                'default_amount': default_amount,
+                'close_after_process': True,
+                'invoice_type': invoice_type,
+                'invoice_id': ids[0], # used in recompute voucher lines and to grab the currency
+                'default_type': invoice_type in ('out_invoice','out_refund') and 'receipt' or 'payment',
+                'type': invoice_type in ('out_invoice','out_refund') and 'receipt' or 'payment'
+                }
+        }
+
 invoice()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

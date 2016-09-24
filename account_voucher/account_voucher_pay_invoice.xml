@@ -23,5 +23,24 @@
                 </button>
             </field>
         </record>
+
+	<!-- #1160 pay multiple invoices -->
+	<record id="ir_actions_server_pay_invoice" model="ir.actions.server">
+	    <field name="sequence" eval="10"/>
+	    <field name="name">Pay Invoices</field>
+	    <field name="state">code</field>
+	    <field name="type">ir.actions.server</field>
+	    <field name="model_id" ref="account.model_account_invoice"/>
+	    <field name="code">action = pool.get('account.invoice').invoice_pay_multiple(cr, uid, context.get('active_ids'), context=context)</field>
+	</record>
+	<record id="account_invoice_pay_multiple" model="ir.values">
+	    <field name="name">Pay Invoices</field>
+	    <field name="action_id" ref="ir_actions_server_pay_invoice"/>
+	    <field name="value" eval="'ir.actions.server,' + str(ref('ir_actions_server_pay_invoice'))"/>
+	    <field name="key">action</field>
+	    <field name="model_id" ref="account.model_account_invoice"/>
+	    <field name="model">account.invoice</field>
+	    <field name="key2">client_action_multi</field>
+	</record>
     </data>
 </openerp>
