@@ -72,35 +72,52 @@ class account_bank_statement(osv.osv):
         for statement in statements:
             # Change to use amount_currency here because overriding this
             # code gets ugly. -- DK
+            #res[statement.id] = statement.balance_start
+            #currency_id = statement.currency.id
+            #for line in statement.move_line_ids:
+            #    line_amount = 0
+            #    from_currency_id = currency_id
+            #    if line.debit > 0:
+            #        if line.account_id.id == \
+            #                statement.journal_id.default_debit_account_id.id:
+            #            if line.amount_currency:
+            #                line_amount = line.amount_currency
+            #                from_currency_id = line.currency_id.id
+            #            else:
+            #                line_amount = line.debit
+            #                from_currency_id = company_currency_id
+            #    else:
+            #        if line.account_id.id == \
+            #                statement.journal_id.default_credit_account_id.id:
+            #            if line.amount_currency:
+            #                line_amount = line.amount_currency
+            #                from_currency_id = line.currency_id.id
+            #            else:
+            #                line_amount = -line.credit
+            #                from_currency_id = company_currency_id
+            #    res[statement.id] += res_currency_obj.compute(cursor,
+            #                                                  user, 
+            #                                                  from_currency_id,
+            #                                                  currency_id,
+            #                                                  line_amount, 
+            #                                                  context=context)
+            
+            # Simplified by colin@zaber.com 2016-10-21
+            # We should always use amount_currency if the statement currency and line
+            # currency are set to the same value. We should never ever use amount currency
+            # otherwise as debit and credit are already currency converted to the default
+            # currency. We no longer need to do any currency conversion of these values.
             res[statement.id] = statement.balance_start
-            currency_id = statement.currency.id
+            statement_currency_id = statement.currency.id
             for line in statement.move_line_ids:
                 line_amount = 0
-                from_currency_id = currency_id
-                if line.debit > 0:
-                    if line.account_id.id == \
-                            statement.journal_id.default_debit_account_id.id:
-                        if line.amount_currency:
-                            line_amount = line.amount_currency
-                            from_currency_id = line.currency_id.id
-                        else:
-                            line_amount = line.debit
-                            from_currency_id = company_currency_id
+                if company_currency_id != statement_currency_id:
+                    line_amount = line.amount_currency
+                elif line.debit > 0:
+                    line_amount = line.credit
                 else:
-                    if line.account_id.id == \
-                            statement.journal_id.default_credit_account_id.id:
-                        if line.amount_currency:
-                            line_amount = line.amount_currency
-                            from_currency_id = line.currency_id.id
-                        else:
-                            line_amount = -line.credit
-                            from_currency_id = company_currency_id
-                res[statement.id] += res_currency_obj.compute(cursor,
-                                                              user, 
-                                                              from_currency_id,
-                                                              currency_id,
-                                                              line_amount, 
-                                                              context=context)
+                    line_amount = -line.debit
+                res[statement.id] += line_amount
 
             if statement.state in ('draft', 'open'):
                 for line in statement.line_ids:
@@ -155,12 +172,12 @@ class account_bank_statement(osv.osv):
             states={'confirm':[('readonly',True)]}),
         'balance_end_real': fields.float('Ending Balance', digits_compute=dp.get_precision('Account'),
             states={'confirm': [('readonly', True)]}),
-        'balance_end': fields.function(_end_balance,
-            store = {
-                'account.bank.statement': (lambda self, cr, uid, ids, c={}: ids, ['line_ids','move_line_ids'], 10),
-                'account.bank.statement.line': (_get_statement, ['amount'], 10),
-            },
-            string="Computed Balance", help='Balance as calculated based on Starting Balance and transaction lines'),
+        'balance_end': fields.function(_end_balance, store=False),
+            #store = {
+            #    'account.bank.statement': (lambda self, cr, uid, ids, c={}: ids, ['line_ids','move_line_ids'], 10),
+            #    'account.bank.statement.line': (_get_statement, ['amount'], 10),
+            #},
+            #string="Computed Balance", help='Balance as calculated based on Starting Balance and transaction lines'),
         'company_id': fields.related('journal_id', 'company_id', type='many2one', relation='res.company', string='Company', store=True, readonly=True),
         'line_ids': fields.one2many('account.bank.statement.line',
             'statement_id', 'Statement lines',
