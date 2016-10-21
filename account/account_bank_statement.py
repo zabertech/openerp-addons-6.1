@@ -108,15 +108,20 @@ class account_bank_statement(osv.osv):
             # otherwise as debit and credit are already currency converted to the default
             # currency. We no longer need to do any currency conversion of these values.
             res[statement.id] = statement.balance_start
-            statement_currency_id = statement.currency.id
+
+            if statement.currency and statement.currency.id:
+                statement_currency_id = statement.currency.id
+            else:
+                statement_currency_id = company_currency_id
+
             for line in statement.move_line_ids:
                 line_amount = 0
                 if company_currency_id != statement_currency_id:
                     line_amount = line.amount_currency
                 elif line.debit > 0:
-                    line_amount = line.credit
+                    line_amount = line.debit
                 else:
-                    line_amount = -line.debit
+                    line_amount = -line.credit
                 res[statement.id] += line_amount
 
             if statement.state in ('draft', 'open'):
@@ -172,12 +177,12 @@ class account_bank_statement(osv.osv):
             states={'confirm':[('readonly',True)]}),
         'balance_end_real': fields.float('Ending Balance', digits_compute=dp.get_precision('Account'),
             states={'confirm': [('readonly', True)]}),
-        'balance_end': fields.function(_end_balance, store=False),
-            #store = {
-            #    'account.bank.statement': (lambda self, cr, uid, ids, c={}: ids, ['line_ids','move_line_ids'], 10),
-            #    'account.bank.statement.line': (_get_statement, ['amount'], 10),
-            #},
-            #string="Computed Balance", help='Balance as calculated based on Starting Balance and transaction lines'),
+        'balance_end': fields.function(_end_balance,
+            store = {
+                'account.bank.statement': (lambda self, cr, uid, ids, c={}: ids, ['line_ids','move_line_ids'], 10),
+                'account.bank.statement.line': (_get_statement, ['amount'], 10),
+            },
+            string="Computed Balance", help='Balance as calculated based on Starting Balance and transaction lines'),
         'company_id': fields.related('journal_id', 'company_id', type='many2one', relation='res.company', string='Company', store=True, readonly=True),
         'line_ids': fields.one2many('account.bank.statement.line',
             'statement_id', 'Statement lines',
