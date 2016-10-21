@@ -109,10 +109,9 @@ class account_bank_statement(osv.osv):
             # currency. We no longer need to do any currency conversion of these values.
             res[statement.id] = statement.balance_start
 
+            statement_currency_id = company_currency_id
             if statement.currency and statement.currency.id:
                 statement_currency_id = statement.currency.id
-            else:
-                statement_currency_id = company_currency_id
 
             for line in statement.move_line_ids:
                 line_amount = 0
