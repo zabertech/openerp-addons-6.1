@@ -523,6 +523,9 @@ class product_category(osv.osv):
             string="Stock Valuation Account",
             view_load=True,
             help="When real-time inventory valuation is enabled on a product, this account will hold the current value of the products.",),
+        'stock_output_analytic_id': fields.many2one('account.analytic.account',
+                "Stock Output Analytic Account",
+                help="The analytic account used in stock moves of outgoing pickings for products in this category"),
     }
 
 product_category()

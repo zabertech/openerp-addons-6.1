@@ -29,6 +29,7 @@
                         <field name="property_stock_account_output_categ" domain="[('type','&lt;&gt;','view'),('type','&lt;&gt;','consolidation')]"/>
                         <field name="property_stock_valuation_account_id" domain="[('type','&lt;&gt;','view'), ('type','&lt;&gt;','consolidation')]"/>
                         <field name="property_stock_journal"/>
+                        <field name="stock_output_analytic_id"/>
                     </group>
                 </form>
             </field>
