@@ -183,7 +183,7 @@ class mrp_bom(osv.osv):
                 continue
             if line.bom_lines or line.type == 'phantom':
                 continue
-            if line.product_id.supply_method == 'produce':
+            if line.product_id.supply_method in ['produce', 'make']:
                 if line.product_id.procure_method == 'make_to_stock':
                     res[line.id] = 'stock'
                 else:
