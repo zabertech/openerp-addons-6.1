@@ -161,7 +161,7 @@ class mrp_bom(osv.osv):
                 result[bom.id] = []
             if bom.bom_lines:
                 continue
-            ok = ((name=='child_complete_ids') and (bom.product_id.supply_method=='produce'))
+            ok = ((name=='child_complete_ids') and (bom.product_id.supply_method in ['produce', 'make']))
             if (bom.type=='phantom' or ok):
                 sids = bom_obj.search(cr, uid, [('bom_id','=',False),('product_id','=',bom.product_id.id)])
                 if sids:
@@ -183,7 +183,7 @@ class mrp_bom(osv.osv):
                 continue
             if line.bom_lines or line.type == 'phantom':
                 continue
-            if line.product_id.supply_method == 'produce':
+            if line.product_id.supply_method in ['produce', 'make']:
                 if line.product_id.procure_method == 'make_to_stock':
                     res[line.id] = 'stock'
                 else:

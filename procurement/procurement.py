@@ -265,10 +265,11 @@ class procurement_order(osv.osv):
             product = procurement.product_id
             #TOFIX: if product type is 'service' but supply_method is 'buy'.
             if product.supply_method <> 'produce':
-                supplier = product.seller_id
-                if supplier and user.company_id and user.company_id.partner_id:
-                    if supplier.id == user.company_id.partner_id.id:
-                        continue
+                if product.supply_method == 'buy':
+                    supplier = product.seller_id
+                    if supplier and user.company_id and user.company_id.partner_id:
+                        if supplier.id == user.company_id.partner_id.id:
+                            continue
                 return False
             if product.type=='service':
                 res = self.check_produce_service(cr, uid, procurement, context)
