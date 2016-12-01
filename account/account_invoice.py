@@ -97,9 +97,6 @@ class account_invoice(osv.osv):
             result[invoice.id] = 0.0
             if invoice.move_id:
                 for move_line in invoice.move_id.line_id:
-                    print "------------"
-                    print "code:", move_line.account_id.code, "type:", move_line.account_id.type
-                    print "amount_residual_currency", move_line.amount_residual_currency
                     if move_line.account_id.type in ('receivable','payable'):
                         if move_line.reconcile_partial_id:
                             partial_reconcile_id = move_line.reconcile_partial_id.id
@@ -108,9 +105,7 @@ class account_invoice(osv.osv):
                             checked_partial_rec_ids.append(partial_reconcile_id)
                         # 2409 only add amount of line to balance if not a
                         # prepayment amount
-                        # TODO use new account boolean field
-                        if move_line.account_id.code not in ['2155', '1300']:
-                            print "adding to result"
+                        if not move_line.account_id.prepayment:
                             result[invoice.id] += move_line.amount_residual_currency
             if invoice.type in ('in_invoice', 'out_refund'):
                 result[invoice.id] *= -1

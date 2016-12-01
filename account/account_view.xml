@@ -177,15 +177,21 @@
                     </group>
                     <notebook colspan="4">
                         <page string="General Information">
-                            <newline/>
-                            <group col="2" colspan="2">
-                                <separator string="Currency" colspan="2"/>
-                                <field name="currency_id"/>
-                                <field name="currency_mode" attrs="{'readonly': [('currency_id','=',False)]}"/>
-                            </group>
-                            <group col="2" colspan="2">
-                                <separator string="Reconcile" colspan="2"/>
-                                <field name="reconcile"/>
+                            <group col="6" colspan="4">
+                                <group col="2" colspan="2">
+                                    <separator string="Currency" colspan="2"/>
+                                    <field name="currency_id"/>
+                                    <field name="currency_mode" attrs="{'readonly': [('currency_id','=',False)]}"/>
+                                </group>
+                                <group col="2" colspan="2">
+                                    <separator string="Reconcile" colspan="2"/>
+                                    <field name="reconcile"/>
+                                </group>
+                                <group col="2" colspan="2">
+                                    <separator string="Invoicing" colspan="2"/>
+                                    <field name="separate_journal_invoice" />
+                                    <field name="prepayment" />
+                                </group>
                             </group>
                             <separator string="Default Taxes" colspan="4"/>
                             <field colspan="4" name="tax_ids" nolabel="1" domain="[('parent_id','=',False)]"/>
