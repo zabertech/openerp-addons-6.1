@@ -103,7 +103,10 @@ class account_invoice(osv.osv):
                             if partial_reconcile_id in checked_partial_rec_ids:
                                 continue
                             checked_partial_rec_ids.append(partial_reconcile_id)
-                        result[invoice.id] += move_line.amount_residual_currency
+                        # 2409 only add amount of line to balance if not a
+                        # prepayment amount
+                        if not move_line.account_id.prepayment:
+                            result[invoice.id] += move_line.amount_residual_currency
             if invoice.type in ('in_invoice', 'out_refund'):
                 result[invoice.id] *= -1
         return result
