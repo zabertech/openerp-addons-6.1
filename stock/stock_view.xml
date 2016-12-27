@@ -1035,7 +1035,8 @@
                         <separator orientation="vertical"/>
                         <filter icon="terp-dolar" name="to_invoice" string="To Invoice" domain="[('invoice_state','=','2binvoiced')]" help="Delivery orders to invoice"/>
                         <separator orientation="vertical"/>
-                        <field name="name"/>
+                        <field name="name"
+                            filter_domain="['|', '|', ('name','ilike',self),('client_order_ref','ilike',self),('online_id','ilike',self)]"/>
                         <field name="partner_id" />
                         <field name="origin"/>
                         <field name="stock_journal_id" groups="base.group_extended" widget="selection"/>

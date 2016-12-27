@@ -472,6 +472,8 @@ class account_account(osv.osv):
         'unrealized_gain_loss': fields.function(__compute, digits_compute=dp.get_precision('Account'), string='Unrealized Gain or Loss', multi='balance',
                                                 help="Value of Loss or Gain due to changes in exchange rate when doing multi-currency transactions."),
         'reconcile': fields.boolean('Allow Reconciliation', help="Check this box if this account allows reconciliation of journal items."),
+        'separate_journal_invoice': fields.boolean('Separate Invoice Lines', help='Check this if you want separate journal items for invoice lines under this account.'),
+        'prepayment': fields.boolean('Omit from Invoice Balance', help='Only for accounts with Internal Type either Payable or Receivable.  If checked, omit amounts from invoice lines with this account from balance calculations, e.g. for prepayments.'),
         'exchange_rate': fields.related('currency_id', 'rate', type='float', string='Exchange Rate', digits=(12,6)),
         'shortcut': fields.char('Shortcut', size=12),
         'tax_ids': fields.many2many('account.tax', 'account_account_tax_default_rel',
