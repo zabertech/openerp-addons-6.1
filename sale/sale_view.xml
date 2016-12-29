@@ -435,6 +435,7 @@
         <record id="view_sales_order_uninvoiced_line_filter" model="ir.ui.view">
             <field name="name">sale.order.uninvoiced.line</field>
             <field name="model">sale.order.line</field>
+            <field name="priority">10</field>
             <field name="type">search</field>
             <field name="arch" type="xml">
                 <search string="Search Uninvoiced Lines">
