@@ -157,7 +157,7 @@ class user_sessions(osv.osv_memory):
 
     def session_timeout(self):
         # FIXME: Staleness setting needs to be customizable
-        session_timeout = 60 * 24 * 31
+        session_timeout = 60 * 60 * 24 * 31
         return session_timeout
 
     def flush_stale(self,cr):
