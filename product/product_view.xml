@@ -112,7 +112,9 @@
                             <group colspan="2" col="2" name="weights" groups="base.group_extended">
                                 <separator string="Weights" colspan="2"/>
                                 <field digits="(14, 3)" name="volume" attrs="{'readonly':[('type','=','service')]}"/>
-                                <field name="weight" attrs="{'readonly':[('type','=','service')]}"/>
+                                <!-- http://bugs/issues/2944 remove gross weight from Zerp -->
+                                <!-- Colin Ligertwood <colin@zaber.com> 2017-01-18 -->
+                                <!--field name="weight" attrs="{'readonly':[('type','=','service')]}"/-->
                                 <field name="weight_net" attrs="{'readonly':[('type','=','service')]}"/>
                             </group>
 
