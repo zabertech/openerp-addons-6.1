@@ -49,6 +49,7 @@ class hr_department(osv.osv):
         'parent_id': fields.many2one('hr.department', 'Parent Department', select=True),
         'child_ids': fields.one2many('hr.department', 'parent_id', 'Child Departments'),
         'default_analytic_id': fields.many2one('account.analytic.account', 'Default Analytic Account'),
+        'rewards_analytic_id': fields.many2one('account.analytic.account', 'Rewards Analytic Account'),
         'note': fields.text('Note'),
     }
 

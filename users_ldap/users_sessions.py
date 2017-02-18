@@ -157,14 +157,14 @@ class user_sessions(osv.osv_memory):
 
     def session_timeout(self):
         # FIXME: Staleness setting needs to be customizable
-        session_timeout = 30*60
+        session_timeout = 60 * 60 * 24 * 31
         return session_timeout
 
     def flush_stale(self,cr):
         cr.execute('''
             DELETE FROM     zerp_users_sessions
             WHERE
-                            age(now() at TIME ZONE 'UTC',create_date) > interval %s
+                            age(now() at TIME ZONE 'UTC',last_request) > interval %s
         ''',('{} seconds'.format(self.session_timeout()),))
 
     def login_session_id(self, cr, login, api_key):
