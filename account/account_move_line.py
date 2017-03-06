@@ -480,6 +480,22 @@ class account_move_line(osv.osv):
                 result.append(line.id)
         return result
 
+
+    # Rewritten to retrieve the effective date from journal_id rather than
+    # the latest effective date from all account.move.lines within the period.
+    # http://bugs/issues/1368
+    # Colin Ligertwood <colin@zaber.com>
+    def _get_date(self, cr, uid, ids, field_name, arg, context=None):
+        if context is None:
+            context or {}
+        res = {id: null for id in ids}
+        for id in ids:
+            dt = time.strftime('%Y-%m-%d')
+            if ('journal_id' in context) and ('period_id' in context):
+                dt = self.move_id.date
+            res[id] = dt
+        return res
+
     _columns = {
         'name': fields.char('Name', size=64, required=True),
         'quantity': fields.float('Quantity', digits=(16,2), help="The optional quantity expressed by this line, eg: number of product sold. The quantity is not a legal requirement but is very useful for some reports."),
@@ -509,7 +525,10 @@ class account_move_line(osv.osv):
         'blocked': fields.boolean('Litigation', help="You can check this box to mark this journal item as a litigation with the associated partner"),
         'partner_id': fields.many2one('res.partner', 'Partner', select=1, ondelete='restrict'),
         'date_maturity': fields.date('Due date', select=True ,help="This field is used for payable and receivable journal entries. You can put the limit date for the payment of this line."),
-        'date': fields.related('move_id','date', string='Effective date', type='date', required=True, select=True,
+        # Rewritten date as functional field rather than related field. Related fields never recalculate once stored, and a faulty default value
+        # was being stored. http://bugs/issues/1368
+        # Colin Ligertwood <colin@zaber.com>
+        'date': fields.function('move_id','date', string='Effective date', type='date', required=True, select=True,
                                 store = {
                                     'account.move': (_get_move_lines, ['date'], 20)
                                 }),
@@ -530,24 +549,6 @@ class account_move_line(osv.osv):
         'credit_debit': fields.function(_credit_debit,string='Debit-Credit'),
     }
 
-    def _get_date(self, cr, uid, context=None):
-        if context is None:
-            context or {}
-        period_obj = self.pool.get('account.period')
-        dt = time.strftime('%Y-%m-%d')
-        if ('journal_id' in context) and ('period_id' in context):
-            cr.execute('SELECT date FROM account_move_line ' \
-                    'WHERE journal_id = %s AND period_id = %s ' \
-                    'ORDER BY id DESC limit 1',
-                    (context['journal_id'], context['period_id']))
-            res = cr.fetchone()
-            if res:
-                dt = res[0]
-            else:
-                period = period_obj.browse(cr, uid, context['period_id'], context=context)
-                dt = period.date_start
-        return dt
-
     def _get_currency(self, cr, uid, context=None):
         if context is None:
             context = {}
@@ -559,7 +560,6 @@ class account_move_line(osv.osv):
     _defaults = {
         'blocked': False,
         'centralisation': 'normal',
-        'date': _get_date,
         'date_created': fields.date.context_today,
         'state': 'draft',
         'currency_id': _get_currency,
