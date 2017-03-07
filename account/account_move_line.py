@@ -481,18 +481,18 @@ class account_move_line(osv.osv):
         return result
 
 
-    # Rewritten to retrieve the effective date from journal_id rather than
+    # Rewritten to retrieve the effective date from account.move rather than
     # the latest effective date from all account.move.lines within the period.
     # http://bugs/issues/1368
     # Colin Ligertwood <colin@zaber.com>
     def _get_date(self, cr, uid, ids, field_name, arg, context=None):
-        if context is None:
-            context or {}
-        res = {id: null for id in ids}
+        res = {}
         for id in ids:
-            dt = time.strftime('%Y-%m-%d')
-            if ('journal_id' in context) and ('period_id' in context):
-                dt = self.move_id.date
+            move_id = self.browse(cr, uid, id, context=context).move_id
+            if (move_id):
+                dt = move_id.date
+            else:
+                dt = time.strftime('%Y-%m-%d')
             res[id] = dt
         return res
 
@@ -528,7 +528,7 @@ class account_move_line(osv.osv):
         # Rewritten date as functional field rather than related field. Related fields never recalculate once stored, and a faulty default value
         # was being stored. http://bugs/issues/1368
         # Colin Ligertwood <colin@zaber.com>
-        'date': fields.function('move_id','date', string='Effective date', type='date', required=True, select=True,
+        'date': fields.function(_get_date, string='Effective date', type='date', required=True, select=True,
                                 store = {
                                     'account.move': (_get_move_lines, ['date'], 20)
                                 }),
@@ -561,6 +561,11 @@ class account_move_line(osv.osv):
         'blocked': False,
         'centralisation': 'normal',
         'date_created': fields.date.context_today,
+        # This gets overwritten within the context of creation within an account_move. The date
+        # is instead set to the account_move date field value.
+        # http://bugs/issues/1368
+        # Colin Ligertwood <colin@zaber.com>
+        'date': fields.date.context_today,
         'state': 'draft',
         'currency_id': _get_currency,
         'journal_id': lambda self, cr, uid, c: c.get('journal_id', False),
