@@ -1388,7 +1388,22 @@ class account_move(osv.osv):
             context = {}
         c = context.copy()
         c['novalidate'] = True
-        result = super(account_move, self).write(cr, uid, ids, vals, c)
+        # Set a default date for newly created move.lines within this account_move.
+        # http://bugs/issues/1368
+        # Colin Ligertwood <colin@zaber.com>
+        result = True
+        if not isinstance(ids, list):
+            ids = [ids]
+        # we're going to be setting a date in the move.lines based on the move, so
+        # we need to treat each move individually.
+        for id in ids:
+            if 'line_id' in vals:
+                for line in vals['line_id']:
+                    # Only act if this is a newly created line
+                    if line[0] != 0: continue
+                    # Set a default effective date to the effective date of the account.move
+                    line[2]['date'] = self.browse(cr, uid, id, context=context).date
+            result &= super(account_move, self).write(cr, uid, id, vals, c)
         self.validate(cr, uid, ids, context=context)
         return result
 
