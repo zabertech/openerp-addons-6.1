@@ -488,10 +488,14 @@ class account_move_line(osv.osv):
     def _get_date(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for id in ids:
-            move_id = self.browse(cr, uid, id, context=context).move_id
-            if (move_id):
-                dt = move_id.date
-            else:
+            move = self.read(cr, uid, id, ['move_id'])
+            dt = False
+            # Fix #3365 check to see if the move line still belongs to a move.
+            if move: 
+                date = self.pool.get('account.move').read(cr, uid, move['move_id'][0], ['date'])
+                if date:
+                    dt = date['date']
+            if not dt:
                 dt = time.strftime('%Y-%m-%d')
             res[id] = dt
         return res
