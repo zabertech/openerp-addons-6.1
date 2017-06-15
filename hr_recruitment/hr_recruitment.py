@@ -182,6 +182,9 @@ class hr_applicant(crm.crm_case, osv.osv):
                                 multi='day_close', type="float", store=True),
         'color': fields.integer('Color Index'),
         'user_email': fields.related('user_id', 'user_email', type='char', string='User Email', readonly=True),
+        'do_not_delete': fields.boolean('Do Not Delete',
+                                        index=True,
+                                        help="Check this if for business reasons, we wish to retain this applicant's information beyond 2 years"),
     }
 
     _defaults = {
