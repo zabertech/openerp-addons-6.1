@@ -109,6 +109,12 @@ class account_move_line_reconcile_writeoff(osv.osv_memory):
     """
     It opens the write off wizard form, in that user can define the journal, account, analytic account for reconcile
     """
+    JOURNAL_ID_WRITE_OFFS_JOURNAL_WOJ = 37
+    ACCOUNT_ID_2180 = 229
+    ACCOUNT_ID_4700 = 189
+    ACCOUNT_ID_5090 = 209
+    DIFFERENT_ACCOUNT_IDS = -42 # just some constant that isn't an account ID
+
     _name = 'account.move.line.reconcile.writeoff'
     _description = 'Account move line reconcile (writeoff)'
     _columns = {
@@ -119,9 +125,19 @@ class account_move_line_reconcile_writeoff(osv.osv_memory):
         'analytic_id': fields.many2one('account.analytic.account', 'Analytic Account', domain=[('parent_id', '!=', False)]),
     }
     _defaults = {
+        'journal_id': self.JOURNAL_ID_WRITE_OFFS_JOURNAL_WOJ,
+        'writeoff_acc_id': lambda self, cr, uid, context: self._default_account(context.get('common_account_id', None)),
         'date_p': lambda self, cr, uid, context: context.get('date_p', time.strftime('%Y-%m-%d')),
         'comment': 'Write-off',
     }
+
+    def _default_account(self, journal_items_account_id):
+        if not journal_items_account_id:
+            return None
+        elif journal_items_account_id == self.ACCOUNT_ID_2180:
+            return self.ACCOUNT_ID_5090
+        else:
+            return self.ACCOUNT_ID_4700
 
     def trans_rec_addendum(self, cr, uid, ids, context=None):
         mod_obj = self.pool.get('ir.model.data')
@@ -131,17 +147,33 @@ class account_move_line_reconcile_writeoff(osv.osv_memory):
         resource_id = mod_obj.read(cr, uid, model_data_ids, fields=['res_id'], context=context)[0]['res_id']
 
         # grab the latest effective date of journal items selected; refs #2393
+        # and the account of the lines; refs #2822
         aml_obj = self.pool.get('account.move.line')
         latest_date = ''
+        common_account = None
         for aml_id in context.get('active_ids', []):
-            line_date = aml_obj.read(cr, uid, aml_id, ['date'])['date']
+            aml_info = aml_obj.read(cr, uid, aml_id, ['date', 'account_id'])
+
+            # handle date
+            line_date = aml_info['date']
             # since date is a string of form '%Y-%m-%d', just use string
             # comparison to grab 'biggest' date
             if line_date > latest_date:
                 latest_date = line_date
+
+            # handle account ID
+            line_account_id = aml_info['account_id'][0]
+            if not common_account:
+                common_account = line_account_id
+            elif line_account_id != common_account:
+                common_account = self.DIFFERENT_ACCOUNT_IDS
+
         # only set in context if there is a date
         if latest_date:
             context['date_p'] = latest_date
+        # only set account in context if it is the same for all lines
+        if common_account and common_account != self.DIFFERENT_ACCOUNT_IDS:
+            context['common_account_id'] = common_account
 
         return {
             'name': _('Reconcile Writeoff'),
