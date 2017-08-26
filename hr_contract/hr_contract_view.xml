@@ -140,6 +140,7 @@
             <field name="arch" type="xml">
                 <form string="Contract Type">
                     <field colspan="4" name="name"/>
+                    <field colspan="4" name="payroll_business_number"/>
                 </form>
             </field>
         </record>
@@ -151,6 +152,7 @@
             <field name="arch" type="xml">
                 <tree string="Contract Type">
                     <field colspan="4" name="name"/>
+                    <field colspan="4" name="payroll_business_number"/>
                 </tree>
             </field>
         </record>
@@ -160,9 +162,10 @@
             <field name="model">hr.contract.type</field>
             <field name="type">search</field>
             <field name="arch" type="xml">
-                <search string="Search Contract Type">
+               <search string="Search Contract Type">
                    <group>
-                    <field name="name"/>
+                     <field name="name"/>
+                     <field name="payroll_business_number"/>
                    </group>
                </search>
             </field>
