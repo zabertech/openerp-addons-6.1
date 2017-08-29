@@ -58,6 +58,7 @@ class hr_contract_type(osv.osv):
     _description = 'Contract Type'
     _columns = {
         'name': fields.char('Contract Type', size=32, required=True),
+        'payroll_business_number': fields.char('Payroll Business Number', size=20),
     }
 hr_contract_type()
 
