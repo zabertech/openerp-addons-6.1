@@ -153,7 +153,7 @@ class hr_employee(osv.osv):
         'identification_id': fields.char('Identification No', size=32),
         'otherid': fields.char('Other Id', size=64),
         'gender': fields.selection([('male', 'Male'),('female', 'Female')], 'Gender'),
-        'marital': fields.selection([('single', 'Single'), ('married', 'Married'), ('widower', 'Widower'), ('divorced', 'Divorced')], 'Marital Status'),
+        'marital': fields.selection([('',''), ('single', 'Single'), ('married', 'Married'), ('widower', 'Widower'), ('divorced', 'Divorced')], 'Marital Status'),
         'department_id':fields.many2one('hr.department', 'Department'),
         'address_id': fields.many2one('res.partner.address', 'Working Address'),
         'address_home_id': fields.many2one('res.partner.address', 'Home Address'),
@@ -224,7 +224,6 @@ class hr_employee(osv.osv):
     _defaults = {
         'active': 1,
         'photo': _get_photo,
-        'marital': 'single',
         'color': 0,
     }
 
