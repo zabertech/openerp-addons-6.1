@@ -125,7 +125,7 @@ class account_move_line_reconcile_writeoff(osv.osv_memory):
         'analytic_id': fields.many2one('account.analytic.account', 'Analytic Account', domain=[('parent_id', '!=', False)]),
     }
     _defaults = {
-        'journal_id': self.JOURNAL_ID_WRITE_OFFS_JOURNAL_WOJ,
+        'journal_id': lambda self, cr, uid, context: self.JOURNAL_ID_WRITE_OFFS_JOURNAL_WOJ,
         'writeoff_acc_id': lambda self, cr, uid, context: self._default_account(context.get('common_account_id', None)),
         'date_p': lambda self, cr, uid, context: context.get('date_p', time.strftime('%Y-%m-%d')),
         'comment': 'Write-off',
