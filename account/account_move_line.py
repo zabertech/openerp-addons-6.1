@@ -1433,7 +1433,7 @@ class account_move_line(osv.osv):
 
         if check and ((not context.get('no_store_function')) or journal.entry_posted):
             tmp = move_obj.validate(cr, uid, [vals['move_id']], context)
-            if journal.entry_posted and tmp:
+            if not context.get('copy', False) and journal.entry_posted and tmp:
                 move_obj.button_validate(cr,uid, [vals['move_id']], context)
         return result
 
