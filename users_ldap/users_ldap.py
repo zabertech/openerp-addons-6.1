@@ -300,6 +300,26 @@ class users(osv.osv):
         return user_id
 
     def check(self, db, uid, passwd):
+
+        # If the password is greater than 22 characters it's probably
+        # an API key or Session ID
+        if len(passwd) >= 22:
+            cr = pooler.get_db(db).cursor()
+            # Check API Key
+            user_id = pooler.get_pool(db).get('zerp.users.rpc.keys').check_api_key(cr,uid,passwd)
+            if user_id:
+                cr.close()
+                return user_id
+
+            # Check Session ID
+            user_id = pooler.get_pool(db).get('zerp.users.sessions').check_session_id(cr,uid,passwd)
+            if user_id:
+                cr.close()
+                return user_id
+
+            cr.close()
+
+        # Okay, maybe not, let's try the normal verification schemes
         try:
             return super(users,self).check(db, uid, passwd)
         except openerp.exceptions.AccessDenied:
@@ -316,18 +336,6 @@ class users(osv.osv):
                     self._uid_cache.setdefault(db, {})[uid] = passwd
                     cr.close()
                     return True
-
-        # Check API Key
-        user_id = pooler.get_pool(db).get('zerp.users.rpc.keys').check_api_key(cr,uid,passwd)
-        if user_id:
-            cr.close()
-            return user_id
-
-        # Check Session ID
-        user_id = pooler.get_pool(db).get('zerp.users.sessions').check_session_id(cr,uid,passwd)
-        if user_id:
-            cr.close()
-            return user_id
 
         cr.close()
         raise openerp.exceptions.AccessDenied()
