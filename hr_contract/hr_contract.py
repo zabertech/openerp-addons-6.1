@@ -1,23 +1,3 @@
-# -*- coding: utf-8 -*-
-##############################################################################
-#
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 import time
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -59,6 +39,7 @@ class hr_contract_type(osv.osv):
     _columns = {
         'name': fields.char('Contract Type', size=32, required=True),
         'payroll_business_number': fields.char('Payroll Business Number', size=20),
+        'ltd_expected_hours': fields.float('Expected Hours for LTD Coverage'),
     }
 hr_contract_type()
 
@@ -77,6 +58,10 @@ class hr_contract(osv.osv):
         'trial_date_end': fields.date('Trial End Date'),
         'working_hours': fields.many2one('resource.calendar','Working Schedule'),
         'wage': fields.float('Wage', digits=(16,2), required=True, help="Basic Salary of the employee"),
+        'annualized_wage': fields.float('Annualized Wage', digits=(16,2),
+                help="For benefits purposes.\nIf employee had a previous contract, defaults to Wage * <the Contract Type's Expected hours for LTD coverage> * 52"),
+        'provider_updated': fields.boolean('Provider Updated',
+                help="Has the benefits provider been updated for the new contract wage?"),
         'advantages': fields.text('Advantages'),
         'notes': fields.text('Notes'),
         'permit_no': fields.char('Work Permit No', size=256, required=False, readonly=False),
@@ -112,6 +97,28 @@ class hr_contract(osv.osv):
         rev3str = datetime.strftime(rev3, "%Y%m%d")
         rev6str = datetime.strftime(rev6, "%Y%m%d")
         return {'value': {'name': 'Hire (docs, ADP, rev3: %s, rev6: %s)' % (rev3str, rev6str)}}
+
+    def action_raise(self, cr, uid, ids, context=None):
+        if len(ids) > 1:
+            raise osv.except_osv('Error',
+                    'Apply raise can only be run on one record at a time')
+        if context is None: context={}
+        contract_info = self.read(cr, uid, ids[0], ['employee_id', 'wage'])
+        context = dict(context, active_ids=ids, active_model=self._name,
+                employee_id=contract_info['employee_id'],
+                wage=contract_info['wage'])
+        return {
+            'name':"Apply Raise",
+            'view_mode': 'form',
+            'view_id': False,
+            'view_type': 'form',
+            'res_model': 'hr.contract.apply.raise',
+            'type': 'ir.actions.act_window',
+            'nodestroy': True,
+            'target': 'new',
+            'domain': '[]',
+            'context': context,
+        }
 
     _constraints = [
         (_check_dates, 'Error! contract start-date must be lower then contract end-date.', ['date_start', 'date_end'])
