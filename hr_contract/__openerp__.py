@@ -42,7 +42,8 @@ You can assign several contracts per employee.
     'init_xml': ['hr_contract_data.xml'],
     'update_xml': [
         'security/ir.model.access.csv',
-        'hr_contract_view.xml'
+        'hr_contract_view.xml',
+        'wizard/hr_contract_apply_raise_view.xml'
         ],
     'demo_xml': [],
     'test': [

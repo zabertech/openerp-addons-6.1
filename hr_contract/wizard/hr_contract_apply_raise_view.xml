@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="action_apply_raise" model="ir.actions.act_window">
+            <field name="name">Apply Raise</field>
+            <field name="res_model">hr.contract.apply.raise</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <record id="hr_contract_apply_raise_form" model="ir.ui.view">
+            <field name="name">hr.contract.apply.raise.form</field>
+            <field name="model">hr.contract.apply.raise</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Apply Raise">
+                    <field name="employee_id"/>
+                    <field name="current_wage"/>
+                    <field name="effective_date" on_change="onchange_set_email(employee_id, effective_date, increase_amount)"/>
+                    <field name="increase_amount" on_change="onchange_set_email(employee_id, effective_date, increase_amount)"/>
+                    <separator colspan="4" string="Send Email Notification"/>
+                    <field name="email_to" colspan="4"/>
+                    <field name="email_from" colspan="4"/>
+                    <field name="email_subject" colspan="4"/>
+                    <field name="email_body" colspan="4" height="125" width="600" nolabel="1"/>
+                    <group col="2" colspan="4">
+                        <button icon='gtk-cancel' special="cancel" string="Cancel" />
+                        <button name="apply_raise" string="Confirm" colspan="1" type="object" icon="gtk-go-forward" />
+                    </group>
+                </form>
+            </field>
+        </record>
+    </data>
+</openerp>

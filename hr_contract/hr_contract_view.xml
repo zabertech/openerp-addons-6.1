@@ -67,12 +67,13 @@
             <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Contract">
-                    <group colspan="3" col="6">
+                    <group colspan="3" col="7">
                         <field name="name" />
-                        <field name="employee_id" />
+                        <field name="employee_id" colspan="3" />
                         <field name="job_id"/>
-                        <field name="wage"/>
                         <field name="type_id" widget="selection"/>
+                        <field name="wage"/>
+                        <button name="action_raise" attrs="{'invisible':[('date_end','!=',False)]}" string="Apply Raise" type="object" icon="gtk-go-forward"/>
                     </group>
                     <notebook colspan='4'>
                     <page string="Information" name="information">
@@ -88,6 +89,9 @@
                             <group col="2" colspan="2" name="right_column">
                             <separator name="advantages" colspan="2" string="Advantages"/>
                             <field name="advantages" nolabel="1" colspan="2"/>
+                            <separator name="benefits" colspan="2" string="Benefits"/>
+                            <field name="annualized_wage" />
+                            <field name="provider_updated" />
                         </group>
                         <separator colspan="4" string="Notes"/>
                         <field colspan="4" name="notes" nolabel="1"/>
@@ -119,6 +123,7 @@
                     <field name="date_start"/>
                     <field name="date_end"/>
                     <field name="wage" invisible="1"/>
+                    <button name="action_raise" attrs="{'invisible':[('date_end','!=',False)]}" string="Apply Raise" type="object" icon="terp-gtk-jump-to-ltr"/>
                 </tree>
             </field>
         </record>
@@ -139,7 +144,8 @@
             <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Contract Type">
-                    <field colspan="4" name="name"/>
+                    <field colspan="2" name="name"/>
+                    <field colspan="2" name="ltd_expected_hours"/>
                     <field colspan="4" name="payroll_business_number"/>
                 </form>
             </field>
@@ -151,8 +157,9 @@
             <field name="type">tree</field>
             <field name="arch" type="xml">
                 <tree string="Contract Type">
-                    <field colspan="4" name="name"/>
-                    <field colspan="4" name="payroll_business_number"/>
+                    <field name="name"/>
+                    <field name="payroll_business_number"/>
+                    <field name="ltd_expected_hours"/>
                 </tree>
             </field>
         </record>
