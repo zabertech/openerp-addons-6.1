@@ -39,13 +39,22 @@ class hr_contract_type(osv.osv):
     _columns = {
         'name': fields.char('Contract Type', size=32, required=True),
         'payroll_business_number': fields.char('Payroll Business Number', size=20),
-        'ltd_expected_hours': fields.float('Expected Hours for LTD Coverage'),
     }
 hr_contract_type()
 
 class hr_contract(osv.osv):
     _name = 'hr.contract'
     _description = 'Contract'
+
+    def _calculate_annualized_wage(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for contract in self.browse(cr, uid, ids, context=context):
+            res[contract.id] = contract.wage * contract.benefits_weekly_hours * 52
+        return res
+
+    def onchange_benefits_wage(self, cr, uid, ids, hours, wage, context=None):
+        return {'value': {'annualized_wage': wage * hours * 52}}
+
     _columns = {
         'name': fields.char('Contract Reference', size=64, required=True),
         'employee_id': fields.many2one('hr.employee', "Employee", required=True),
@@ -58,8 +67,11 @@ class hr_contract(osv.osv):
         'trial_date_end': fields.date('Trial End Date'),
         'working_hours': fields.many2one('resource.calendar','Working Schedule'),
         'wage': fields.float('Wage', digits=(16,2), required=True, help="Basic Salary of the employee"),
-        'annualized_wage': fields.float('Annualized Wage', digits=(16,2),
-                help="For benefits purposes.\nIf employee had a previous contract, defaults to Wage * <the Contract Type's Expected hours for LTD coverage> * 52"),
+        'benefits_weekly_hours': fields.float('Expected Weekly Hours', digits=(16,2),
+                help="For benefits purposes only.\nExpected number of hours per week."),
+        'annualized_wage': fields.function(_calculate_annualized_wage, readonly=False,
+                string='Annualized Wage', type='float', digits=(16,2),
+                help="For benefits purposes only.\nCalculated as Wage * Expected Weekly Hours * 52"),
         'provider_updated': fields.boolean('Provider Updated',
                 help="Has the benefits provider been updated for the new contract wage?"),
         'advantages': fields.text('Advantages'),

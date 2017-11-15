@@ -77,7 +77,6 @@ Effective date: {effective_date}"""
 
         (contract_id, contract_ref) = form_data['contract_id']
         type_id = contract_obj.read(cr, uid, contract_id, ['type_id'])['type_id'][0]
-        ltd_expected_hours = type_obj.read(cr, uid, type_id, ['ltd_expected_hours'])['ltd_expected_hours']
 
         # remove anything in brackets from the existing contract reference and
         # tag it onto the new contract ref
@@ -92,7 +91,6 @@ Effective date: {effective_date}"""
                 - datetime.timedelta(1)
 
         new_wage = form_data['current_wage'] + form_data['increase_amount']
-        new_annualized_wage = new_wage * ltd_expected_hours * 52
 
         # update the existing contract
         contract_obj.write(cr, uid, [contract_id], {
