@@ -103,7 +103,6 @@ Effective date: {effective_date}"""
                 'date_start': form_data['effective_date'],
                 'date_end': None,
                 'wage': new_wage,
-                'annualized_wage': new_annualized_wage,
                 'provider_updated': False})
 
         # send email notification
