@@ -72,7 +72,7 @@
                         <field name="employee_id" colspan="3" />
                         <field name="job_id"/>
                         <field name="type_id" widget="selection"/>
-                        <field name="wage"/>
+                        <field name="wage" on_change="onchange_benefits_wage(benefits_weekly_hours, wage)" />
                         <button name="action_raise" attrs="{'invisible':[('date_end','!=',False)]}" string="Apply Raise" type="object" icon="gtk-go-forward"/>
                     </group>
                     <notebook colspan='4'>
@@ -90,6 +90,7 @@
                             <separator name="advantages" colspan="2" string="Advantages"/>
                             <field name="advantages" nolabel="1" colspan="2"/>
                             <separator name="benefits" colspan="2" string="Benefits"/>
+                            <field name="benefits_weekly_hours" on_change="onchange_benefits_wage(benefits_weekly_hours, wage)"/>
                             <field name="annualized_wage" />
                             <field name="provider_updated" />
                         </group>
@@ -144,8 +145,7 @@
             <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Contract Type">
-                    <field colspan="2" name="name"/>
-                    <field colspan="2" name="ltd_expected_hours"/>
+                    <field colspan="4" name="name"/>
                     <field colspan="4" name="payroll_business_number"/>
                 </form>
             </field>
@@ -159,7 +159,6 @@
                 <tree string="Contract Type">
                     <field name="name"/>
                     <field name="payroll_business_number"/>
-                    <field name="ltd_expected_hours"/>
                 </tree>
             </field>
         </record>
