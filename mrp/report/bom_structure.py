@@ -30,6 +30,7 @@ class bom_structure(report_sxw.rml_parse):
         self.localcontext.update({
             'time': time,
             'get_children':self.get_children,
+            'get_lines':self.get_lines,
         })
 
     def get_children(self, object, level=0):
@@ -58,7 +59,29 @@ class bom_structure(report_sxw.rml_parse):
 
         return children
 
+    def get_lines(self, object, level=0):
+        result = []
+
+        def _get_rec(object,level):
+            for l in object:
+                res = {}
+                res['name'] = l.name
+                res['pname'] = l.product_id.name
+                res['pcode'] = l.product_id.default_code
+                res['pqty'] = l.product_qty
+                res['uname'] = l.product_uom.name
+                res['code'] = l.code
+                res['level'] = level
+                result.append(res)
+            return result
+
+        children = _get_rec(object,level)
+
+        return children
+
+
 report_sxw.report_sxw('report.bom.structure','mrp.bom','mrp/report/bom_structure.rml',parser=bom_structure,header='internal')
+report_sxw.report_sxw('report.bom','mrp.bom','mrp/report/bom.rml',parser=bom_structure,header='internal')
 
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
