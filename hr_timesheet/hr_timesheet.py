@@ -194,9 +194,9 @@ class hr_analytic_timesheet(osv.osv):
                 new_vals = {}
                 if old_analytic_ts.sheet_id.user_id != uid \
                         and old_analytic_ts.sheet_id.state in ('confirm'):
-                    if vals['account_id'] and old_analytic_ts.account_id.id != vals['account_id']:
+                    if vals.get('account_id') and old_analytic_ts.account_id.id != vals['account_id']:
                         new_vals['account_id'] = vals['account_id']
-                    if vals['product_id'] and old_analytic_ts.product_id.id != vals['product_id']:
+                    if vals.get('product_id') and old_analytic_ts.product_id.id != vals['product_id']:
                         new_vals['product_id'] = vals['product_id']
                     # doing this the easy way: just send an email for every change
                     # nicer way would be to collect all changes for each
