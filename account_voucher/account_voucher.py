@@ -238,10 +238,14 @@ class account_voucher(osv.osv):
                 else:
                     ctx = context.copy()
                     ctx.update({'date': voucher.date})
-                    voucher_rate = self.browse(cr, uid, voucher.id, context=ctx).currency_id.rate
-                    company_currency_rate = voucher.company_id.currency_id.rate
-                    rate = voucher_rate * company_currency_rate
+                    res[voucher.id] = self.pool.get('res.currency').compute(cr, uid,
+                                        voucher.payment_rate_currency_id.id,
+                                        voucher.company_id.currency_id.id,
+                                        voucher.amount,
+                                        ctx)
+                    continue
             res[voucher.id] =  self.pool.get('res.currency').round(cr, uid, voucher.company_id.currency_id, (voucher.amount * rate))
+
         return res
 
     _name = 'account.voucher'
