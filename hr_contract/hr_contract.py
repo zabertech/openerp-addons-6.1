@@ -108,7 +108,7 @@ class hr_contract(osv.osv):
         rev6 = date_start + relativedelta(days=180)
         rev3str = datetime.strftime(rev3, "%Y%m%d")
         rev6str = datetime.strftime(rev6, "%Y%m%d")
-        return {'value': {'name': 'Hire (docs, ADP, rev3: %s, rev6: %s)' % (rev3str, rev6str)}}
+        return {'value': {'name': 'Hire (rev3: %s, rev6: %s)' % (rev3str, rev6str)}}
 
     def action_raise(self, cr, uid, ids, context=None):
         if len(ids) > 1:
