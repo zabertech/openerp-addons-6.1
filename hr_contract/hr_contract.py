@@ -101,7 +101,7 @@ class hr_contract(osv.osv):
         if not date_start or name:
             return {}
         # change Contract Reference to show:
-        #   Hire (docs, ADP, rev3: yyyymmdd, rev6: yyyymmdd)
+        #   Hire (rev3: yyyymmdd, rev6: yyyymmdd)
         # where rev3 gives start date + 90 and rev6 gives start date + 180 days
         date_start = datetime.strptime(date_start, "%Y-%m-%d").date()
         rev3 = date_start + relativedelta(days=90)
