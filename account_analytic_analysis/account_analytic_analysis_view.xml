@@ -61,22 +61,22 @@
                         <field name="last_worked_invoiced_date"/>
                         <field name="last_worked_date"/>
                     </page>
-                    <page string="Stats by month">
+                    <!-- page string="Stats by month">
                         <field colspan="4" name="month_ids" nolabel="1">
                             <tree string="Month">
                                 <field name="month"/>
                                 <field name="unit_amount" widget="float_time"/>
                             </tree>
                         </field>
-                    </page>
-                    <page string="Stats by user"> 
+                    </page -->
+                    <!-- page string="Stats by user"> 
                         <field colspan="4" name="user_ids" nolabel="1">
                             <tree string="Users">
                                 <field name="user"/>
                                 <field name="unit_amount" widget="float_time"/>
                             </tree>
                         </field>
-                    </page>
+                    </page -->
                 </notebook>
 
             </field>
