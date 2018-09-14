@@ -88,8 +88,11 @@ class hr_job(osv.osv):
 
     _name = "hr.job"
     _description = "Job Description"
+    _order = "name"
     _columns = {
         'name': fields.char('Job Name', size=128, required=True, select=True),
+        'is_external_title': fields.boolean('Reporting Job Title',
+                help="Indicates whether the Job Name is a title used for external (i.e. government) reporting purposes"),
         'expected_employees': fields.function(_no_of_employee, string='Expected Employees', help='Required number of employees in total for that job.',
             store = {
                 'hr.job': (lambda self,cr,uid,ids,c=None: ids, ['no_of_recruitment'], 10),
