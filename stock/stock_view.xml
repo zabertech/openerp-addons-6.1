@@ -743,6 +743,7 @@
                                         groups="base.group_extended"
                                         icon="terp-stock_effects-object-colorize"
                                         states="draft,assigned,confirmed"/>
+                                    <field name="location_id"/>
                                     <field name="location_dest_id"/>
                                     <field name="date_expected" string="Date Expected"/>
                                     <field name="state"/>
@@ -1160,6 +1161,7 @@
                                         groups="base.group_extended"
                                         icon="terp-stock_effects-object-colorize"
                                         states="draft,assigned,confirmed"/>
+                                    <field name="location_id"/>
                                     <field name="location_dest_id"/>
                                     <field name="state"/>
                                 </tree>

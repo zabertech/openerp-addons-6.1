@@ -61,27 +61,7 @@ class sale_order(osv.osv):
     def onchange_partner_id(self, cr, uid, ids, part):
         if not part:
             return {'value':{'partner_invoice_id': False, 'partner_shipping_id':False, 'partner_order_id':False, 'payment_term' : False}}
-        warning = {}
-        title = False
-        message = False
-        partner = self.pool.get('res.partner').browse(cr, uid, part)
-        if partner.sale_warn != 'no-message':
-            if partner.sale_warn == 'block':
-                raise osv.except_osv(_('Alert for %s !') % (partner.name), partner.sale_warn_msg)
-            title =  _("Warning for %s") % partner.name
-            message = partner.sale_warn_msg
-            warning = {
-                    'title': title,
-                    'message': message,
-            }
-
-        result =  super(sale_order, self).onchange_partner_id(cr, uid, ids, part)
-
-        if result.get('warning',False):
-            warning['title'] = title and title +' & '+ result['warning']['title'] or result['warning']['title']
-            warning['message'] = message and message + ' ' + result['warning']['message'] or result['warning']['message']
-
-        return {'value': result.get('value',{}), 'warning':warning}
+        return super(sale_order, self).onchange_partner_id(cr, uid, ids, part)
 sale_order()
 
 

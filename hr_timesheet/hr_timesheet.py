@@ -180,12 +180,13 @@ class hr_analytic_timesheet(osv.osv):
         # timesheet line of that employee
         # #1426 update HR_USER_IDS, also trigger notification when product is
         # changed in a timesheet line
+        # #4649: Add Scott and remove Bronwyn from users that trigger emails upon update
 
         # surely there's a better way to figure out what user's changes to
         # capture, using actual user roles, say
         HR_USER_IDS = [
             35, # Denise
-            105, # Bronwyn
+            89, # Scott
             # FOR TESTING: 119, # sutracy
         ]
 
