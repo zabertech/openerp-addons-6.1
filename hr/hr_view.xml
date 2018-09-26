@@ -393,6 +393,7 @@
                     <field name="expected_employees"/>
                     <field name="no_of_employee"/>
                     <field name="no_of_recruitment"/>
+                    <field name="is_external_title" />
                     <field name="state"/>
                 </tree>
             </field>
@@ -410,6 +411,8 @@
                             help="In Position"/>
                     <filter icon="terp-personal+"  domain="[('state','=','recruit')]" string="In Recruitment"
                         help="In Recruitment"/>
+                    <filter icon="terp-check" domain="[('is_external_title','=',True)]" string="External Titles"
+                        help="Display only Job Names used for external reporting purposes"/>
                     <separator orientation="vertical"/>
                     <field name="name"/>
                     <field name="department_id" widget="selection">
