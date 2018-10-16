@@ -769,6 +769,7 @@ class hr_timesheet_sheet_sheet_day(osv.osv):
     }
 
     def init(self, cr):
+        cr.execute("DROP VIEW IF EXISTS hr_timesheet_sheet_sheet_day CASCADE")
         cr.execute("""create or replace view hr_timesheet_sheet_sheet_day as
             SELECT
                 id,
