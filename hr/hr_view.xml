@@ -65,7 +65,7 @@
                             </group>
                             <group col="2" colspan="2">
                                 <separator string="Job Information" colspan="2"/>
-                                <field name="job_id" domain="[('state','!=','old')]"/>
+                                <field name="job_id" doamin="['|', ('state','!=','old'), ('is_external_title','=',True)]" />
                                 <field name="coach_id" />
                             </group>
                         </page>
