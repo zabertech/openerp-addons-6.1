@@ -392,6 +392,9 @@ class purchase_order(osv.osv):
 
                 po_line.write({'invoiced':True, 'invoice_lines': [(4, inv_line_id)]}, context=context)
 
+            # #3459 get the invoice address on the partner
+            partner_addr = self.pool.get('res.partner').address_get(cr, uid, [order.partner_id.id], adr_pref=['invoice']) 
+
             # get invoice data and create invoice
             inv_data = {
                 'name': order.partner_ref or order.name,
@@ -400,7 +403,7 @@ class purchase_order(osv.osv):
                 'type': 'in_invoice',
                 'partner_id': order.partner_id.id,
                 'currency_id': order.pricelist_id.currency_id.id,
-                'address_invoice_id': order.partner_address_id.id,
+                'address_invoice_id': 'invoice' in partner_addr and partner_addr['invoice'] or order.partner_address_id.id,
                 'address_contact_id': order.partner_address_id.id,
                 'journal_id': len(journal_ids) and journal_ids[0] or False,
                 'invoice_line': [(6, 0, inv_lines)], 
