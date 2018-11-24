@@ -714,7 +714,7 @@ class account_invoice(osv.osv):
         for il in iml:
             if il['account_analytic_id']:
                 if inv.type in ('in_invoice', 'in_refund'):
-                    ref = inv.reference
+                    ref = inv.name or inv.reference
                 else:
                     ref = self._convert_ref(cr, uid, inv.number)
                 if not inv.journal_id.analytic_journal_id:
@@ -878,7 +878,7 @@ class account_invoice(osv.osv):
 
             entry_type = ''
             if inv.type in ('in_invoice', 'in_refund'):
-                ref = inv.reference
+                ref = inv.name or inv.reference
                 entry_type = 'journal_pur_voucher'
                 if inv.type == 'in_refund':
                     entry_type = 'cont_voucher'
@@ -958,7 +958,7 @@ class account_invoice(osv.osv):
             line = self.finalize_invoice_move_lines(cr, uid, inv, line)
 
             move = {
-                'ref': inv.reference and inv.reference or inv.name,
+                'ref': inv.name and inv.name or inv.reference,
                 'line_id': line,
                 'journal_id': journal_id,
                 'date': date,
@@ -1018,7 +1018,7 @@ class account_invoice(osv.osv):
             invtype = obj_inv.type
             number = obj_inv.number
             move_id = obj_inv.move_id and obj_inv.move_id.id or False
-            reference = obj_inv.reference or ''
+            reference = obj_inv.name or obj_inv.reference or ''
 
             self.write(cr, uid, ids, {'internal_number':number})
 
@@ -1218,7 +1218,7 @@ class account_invoice(osv.osv):
         else:
             entry_type = 'cont_voucher'
         if invoice.type in ('in_invoice', 'in_refund'):
-            ref = invoice.reference
+            ref = invoice.name or invoice.reference
         else:
             ref = self._convert_ref(cr, uid, invoice.number)
         # Pay attention to the sign for both debit/credit AND amount_currency
